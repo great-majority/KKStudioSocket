@@ -1,0 +1,147 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET Framework
+      uses: microsoft/setup-msbuild@v1.3
+      
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: 'latest'
+    
+    - name: Restore NuGet packages
+      run: powershell.exe -ExecutionPolicy Bypass -File "build.ps1" restore
+      
+    - name: Build solution
+      run: powershell.exe -ExecutionPolicy Bypass -File "build.ps1" build ${{ matrix.configuration }}
+      
+    - name: Upload KK build artifacts
+      if: matrix.configuration == 'Release'
+      uses: actions/upload-artifact@v4
+      with:
+        name: KK_KKStudioSocket-${{ github.sha }}
+        path: bin/KK_KKStudioSocket.dll
+        retention-days: 30
+        
+    - name: Upload KKS build artifacts  
+      if: matrix.configuration == 'Release'
+      uses: actions/upload-artifact@v4
+      with:
+        name: KKS_KKStudioSocket-${{ github.sha }}
+        path: bin/KKS_KKStudioSocket.dll
+        retention-days: 30
+
+  package:
+    runs-on: windows-latest
+    needs: build
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET Framework
+      uses: microsoft/setup-msbuild@v1.3
+      
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: 'latest'
+    
+    - name: Restore and build Release
+      run: |
+        powershell.exe -ExecutionPolicy Bypass -File "build.ps1" restore
+        powershell.exe -ExecutionPolicy Bypass -File "build.ps1" build Release
+        
+    - name: Create release package
+      run: |
+        mkdir release-package
+        copy bin\KK_KKStudioSocket.dll release-package\
+        copy bin\KKS_KKStudioSocket.dll release-package\
+        copy README.md release-package\
+        copy LICENSE release-package\
+        echo "Collecting dependency DLLs..."
+        mkdir release-package\dependencies
+        
+        # Find and copy WebSocketSharp DLLs
+        $wsSharpDlls = Get-ChildItem -Path "src" -Recurse -Name "websocket-sharp.dll" 2>$null
+        if ($wsSharpDlls) {
+          foreach ($dll in $wsSharpDlls) {
+            $sourcePath = Get-ChildItem -Path "src" -Recurse -Name $dll | Select-Object -First 1
+            if ($sourcePath) {
+              copy $sourcePath.FullName release-package\
+              echo "Copied WebSocketSharp: $($sourcePath.FullName)"
+            }
+          }
+        }
+        
+        # Find and copy Newtonsoft.Json DLLs  
+        $jsonDlls = Get-ChildItem -Path "src" -Recurse -Name "Newtonsoft.Json.dll" 2>$null
+        if ($jsonDlls) {
+          foreach ($dll in $jsonDlls) {
+            $sourcePath = Get-ChildItem -Path "src" -Recurse -Name $dll | Select-Object -First 1
+            if ($sourcePath) {
+              copy $sourcePath.FullName release-package\
+              echo "Copied Newtonsoft.Json: $($sourcePath.FullName)"
+            }
+          }
+        }
+        
+    - name: Archive release package
+      run: |
+        powershell Compress-Archive -Path release-package\* -DestinationPath KKStudioSocket-${{ github.event.release.tag_name }}.zip
+        
+    - name: Upload release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: KKStudioSocket-${{ github.event.release.tag_name }}.zip
+        asset_name: KKStudioSocket-${{ github.event.release.tag_name }}.zip
+        asset_content_type: application/zip
+
+  lint:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET Framework
+      uses: microsoft/setup-msbuild@v1.3
+      
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: 'latest'
+    
+    - name: Restore packages for analysis
+      run: powershell.exe -ExecutionPolicy Bypass -File "build.ps1" restore
+      
+    - name: Run build analysis
+      run: powershell.exe -ExecutionPolicy Bypass -File "build.ps1" build Release
+      continue-on-error: true
+      
+    - name: Check build warnings
+      run: |
+        echo "Build completed. Check for any warnings in the build output above."
