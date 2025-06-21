@@ -8,6 +8,10 @@ using UnityEngine;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 using Newtonsoft.Json;
+using KKAPI;
+using Studio;
+using System.Linq;
+using KKStudioSocket.Commands;
 
 namespace KKStudioSocket
 {
@@ -23,31 +27,41 @@ namespace KKStudioSocket
 
         internal static new ManualLogSource Logger;
         private static readonly Queue<Action> _actionQueue = new Queue<Action>();
-        
+
         private ConfigEntry<int> _serverPort;
         private ConfigEntry<bool> _enableServer;
         private WebSocketServer _webSocketServer;
+        private Studio.Studio _studio = null;
 
         private void Awake()
         {
             Logger = base.Logger;
-            Logger.LogInfo($"Loading {Name} v{Version}");
-            
-            _serverPort = Config.Bind("Server", "Port", DefaultPort, "WebSocket server port number");
-            _enableServer = Config.Bind("Server", "Enable", true, "Enable WebSocket server");
-            
-            if (_enableServer.Value)
-            {
-                StartWebSocketServer();
-            }
+            Logger.LogInfo($"Awaking {Name} v{Version}");
         }
 
         private void Update()
         {
-            lock (_actionQueue)
+            if (KKAPI.KoikatuAPI.GetCurrentGameMode() == GameMode.Studio)
             {
-                while (_actionQueue.Count > 0)
-                    _actionQueue.Dequeue().Invoke();
+                if (this._studio == null && Studio.Studio.instance != null)
+                {
+                    this._studio = Studio.Studio.instance;
+                    Logger.LogError("Studio instance is initialized.");
+
+                    _serverPort = Config.Bind("Server", "Port", DefaultPort, "WebSocket server port number");
+                    _enableServer = Config.Bind("Server", "Enable", true, "Enable WebSocket server");
+
+                    if (_enableServer.Value)
+                    {
+                        StartWebSocketServer();
+                    }
+                }
+
+                lock (_actionQueue)
+                {
+                    while (_actionQueue.Count > 0)
+                        _actionQueue.Dequeue().Invoke();
+                }
             }
         }
 
@@ -68,44 +82,36 @@ namespace KKStudioSocket
 
         private void OnDestroy()
         {
-            _webSocketServer?.Stop();
-            Logger.LogInfo("WebSocket server stopped");
+            if (KKAPI.KoikatuAPI.GetCurrentGameMode() == GameMode.Studio && this._studio != null)
+            {
+                _webSocketServer?.Stop();
+                Logger.LogInfo("WebSocket server stopped");
+            }
         }
 
-        internal static void EnqueueTransform(TransformCommand cmd)
+        internal static void EnqueueMainThreadAction(Action action)
         {
             lock (_actionQueue)
             {
-                _actionQueue.Enqueue(() => ApplyTransform(cmd));
+                _actionQueue.Enqueue(action);
             }
         }
 
-        private static void ApplyTransform(TransformCommand cmd)
-        {
-            try
-            {
-                var posStr = cmd.pos != null && cmd.pos.Length >= 3 ? $"[{cmd.pos[0]:F2}, {cmd.pos[1]:F2}, {cmd.pos[2]:F2}]" : "null";
-                var rotStr = cmd.rot != null && cmd.rot.Length >= 3 ? $"[{cmd.rot[0]:F2}, {cmd.rot[1]:F2}, {cmd.rot[2]:F2}]" : "null";
-                
-                Logger.LogInfo($"Transform command received: ID={cmd.id}, pos={posStr}, rot={rotStr}");
-                
-                // TODO: Implement actual object manipulation using Studio API
-                // Example: var oci = StudioAPI.GetObject(cmd.id) as OCIItem;
-                // Currently only logs output
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex);
-            }
-        }
     }
 
     internal class StudioWsBehavior : WebSocketBehavior
     {
+        private void EnqueueAction(Action action)
+        {
+            KKStudioSocketPlugin.EnqueueMainThreadAction(action);
+        }
+
         protected override void OnMessage(MessageEventArgs e)
         {
             try
             {
+                KKStudioSocketPlugin.Logger.LogDebug($"Received WebSocket message: {e.Data}");
+                
                 // Determine command type
                 var baseCommand = JsonConvert.DeserializeObject<BaseCommand>(e.Data);
                 if (baseCommand?.type == null)
@@ -113,25 +119,56 @@ namespace KKStudioSocket
                     KKStudioSocketPlugin.Logger.LogWarning($"Command type not specified: {e.Data}");
                     return;
                 }
+                
+                KKStudioSocketPlugin.Logger.LogDebug($"Processing command type: {baseCommand.type}");
 
                 switch (baseCommand.type.ToLower())
                 {
                     case "ping":
+                        KKStudioSocketPlugin.Logger.LogDebug("Handling ping command");
                         var pingCmd = JsonConvert.DeserializeObject<PingCommand>(e.Data);
                         if (pingCmd != null)
                         {
-                            HandlePingCommand(pingCmd);
+                            KKStudioSocketPlugin.Logger.LogDebug($"Ping command parsed: message={pingCmd.message}");
+                            var pingHandler = new PingCommandHandler(Send);
+                            pingHandler.Handle(pingCmd);
+                            KKStudioSocketPlugin.Logger.LogDebug("Ping handler executed");
                         }
-                        break;
-                        
-                    case "transform":
-                        var transformCmd = JsonConvert.DeserializeObject<TransformCommand>(e.Data);
-                        if (transformCmd != null)
+                        else
                         {
-                            KKStudioSocketPlugin.EnqueueTransform(transformCmd);
+                            KKStudioSocketPlugin.Logger.LogWarning("Failed to parse ping command");
                         }
                         break;
-                        
+
+                    case "tree":
+                        KKStudioSocketPlugin.Logger.LogDebug("Handling tree command");
+                        var treeHandler = new TreeCommandHandler(Send);
+                        treeHandler.Handle();
+                        KKStudioSocketPlugin.Logger.LogDebug("Tree handler executed");
+                        break;
+
+                    case "update":
+                        var updateCmd = JsonConvert.DeserializeObject<UpdateCommand>(e.Data);
+                        if (updateCmd != null)
+                        {
+                            EnqueueAction(() => {
+                                var updateHandler = new UpdateCommandHandler(Send);
+                                updateHandler.Handle(updateCmd);
+                            });
+                        }
+                        break;
+
+                    case "add":
+                        var addCmd = JsonConvert.DeserializeObject<AddCommand>(e.Data);
+                        if (addCmd != null)
+                        {
+                            EnqueueAction(() => {
+                                var addHandler = new AddCommandHandler(Send);
+                                addHandler.Handle(addCmd);
+                            });
+                        }
+                        break;
+
                     default:
                         KKStudioSocketPlugin.Logger.LogWarning($"Unsupported command type: {baseCommand.type}");
                         break;
@@ -144,33 +181,6 @@ namespace KKStudioSocket
             }
         }
 
-        private void HandlePingCommand(PingCommand cmd)
-        {
-            try
-            {
-                var pongResponse = new PongResponse
-                {
-                    type = "pong",
-                    timestamp = GetUnixTimeMilliseconds(),
-                    message = cmd.message ?? "pong"
-                };
-                
-                var jsonResponse = JsonConvert.SerializeObject(pongResponse);
-                Send(jsonResponse);
-                
-                KKStudioSocketPlugin.Logger.LogInfo($"Ping received, Pong response: {cmd.message}");
-            }
-            catch (Exception ex)
-            {
-                KKStudioSocketPlugin.Logger.LogError($"Ping processing error: {ex.Message}");
-            }
-        }
-
-        private static long GetUnixTimeMilliseconds()
-        {
-            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return (long)(DateTime.UtcNow - epoch).TotalMilliseconds;
-        }
 
         protected override void OnOpen()
         {
@@ -210,10 +220,24 @@ namespace KKStudioSocket
     }
 
     [Serializable]
-    public class TransformCommand : BaseCommand
+    public class UpdateCommand : BaseCommand
     {
+        public string command;
         public int id;
         public float[] pos;
         public float[] rot;
+        public float[] scale;
+    }
+
+    [Serializable]
+    public class AddCommand : BaseCommand
+    {
+        public string command;
+        public int group;
+        public int category;
+        public int no;
+        public int? parentId;
+        public string path;
+        public string sex;
     }
 }

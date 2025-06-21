@@ -11,5 +11,10 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)KKStudioSocketPlugin.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\BaseCommandHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\PingCommandHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\TreeCommandHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\UpdateCommandHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\AddCommandHandler.cs" />
   </ItemGroup>
 </Project>

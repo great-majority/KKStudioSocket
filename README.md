@@ -3,122 +3,56 @@
 [![Build and Test](https://github.com/great-majority/KKStudioSocket/actions/workflows/build.yml/badge.svg)](https://github.com/great-majority/KKStudioSocket/actions/workflows/build.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-A BepInEx plugin for Koikatsu that functions as a WebSocket server, enabling external control and editing of studio objects.
+A Koikatsu plugin that provides a WebSocket server for external control of Studio objects.
 
-[日本語マニュアルがここにあります、](README.ja.md)
+[日本語ドキュメント (Japanese Documentation)](README.ja.md) | [Development Guide](CONTRIBUTING.md)
 
-## Overview
+## 🎮 What is KKStudioSocket?
 
-KKStudioSocket is a BepInEx plugin compatible with both Koikatsu (KK) and Koikatsu Sunshine (KKS). It features a built-in WebSocket server that allows external applications to control studio operations.
+KKStudioSocket allows you to control Koikatsu Studio objects remotely via WebSocket connections. You can:
 
-## Supported Games
+- **Add objects** (items, characters, lights) to your scene
+- **Modify object properties** (position, rotation, scale)
+- **Retrieve scene structure** as a hierarchical tree
+- **Control the scene** programmatically from external applications
 
-- **Koikatu (KK)** - .NET Framework 3.5
-- **Koikatu Sunshine (KKS)** - .NET Framework 4.6
+## 📋 Requirements
 
-## Features
+- **Koikatsu (KK)** or **Koikatsu Sunshine (KKS)**
+- **BepInEx 5.4.21+** installed
+- **IllusionModdingAPI** (KKAPI/KKSAPI) installed
 
-- **WebSocket Server** (Default port: 8765, configurable)
-- **Real-time Communication** (Using WebSocketSharp library)
-- **JSON-based Command Processing** (Using Newtonsoft.Json)
-- **Ping-pong Communication** for connectivity verification
-- **Transform Operations** for external studio object editing
-- **Configurable** server enable/disable toggle
+## 🚀 Installation
 
-## Building
+1. **Download** the latest release from [Releases](https://github.com/great-majority/KKStudioSocket/releases)
+2. **Extract** the appropriate DLL file:
+   - For Koikatsu: `KK_KKStudioSocket.dll`
+   - For Koikatsu Sunshine: `KKS_KKStudioSocket.dll`
+3. **Copy** the DLL to your game's `BepInEx/plugins/` folder
+4. **Start** the game and enter Studio mode
 
-### Prerequisites
+## ⚙️ Configuration
 
-- Visual Studio 2019/2022 (Community or higher)
-- .NET Framework 3.5 and 4.6 development tools
+The plugin creates a configuration file that can be modified through BepInEx Configuration Manager:
 
-### Build Commands
+- **Server Port** (Default: 8765) - WebSocket server port
+- **Server Enable** (Default: true) - Enable/disable the WebSocket server
 
-Use the PowerShell script for building:
+## 🔗 Connection
 
-```powershell
-# Basic Release build
-.\build.ps1
+Connect to the WebSocket server using any WebSocket client:
 
-# Debug build
-.\build.ps1 build Debug
-
-# Clean + Restore + Build
-.\build.ps1 rebuild
-
-# Build both Debug and Release
-.\build.ps1 all
-
-# Clean only
-.\build.ps1 clean
-
-# Package restore only
-.\build.ps1 restore
-
-# Auto-deploy to game directories
-.\build.ps1 deploy                    # Deploy to both games
-.\build.ps1 deploy Release both       # Deploy to both games (explicit)
-.\build.ps1 deploy Release kk         # Deploy to KK only
-.\build.ps1 deploy Release kks        # Deploy to KKS only
-
-# Show help
-.\build.ps1 help
-```
-
-### Auto-deploy Feature
-
-The `deploy` command automatically copies built DLL files to the game's BepInEx plugin directory:
-
-- **Auto-detection**: Automatically retrieves game installation directories from registry
-- **Backup functionality**: Automatically backs up existing files as `.backup` files
-- **Error handling**: Displays warnings when games are not found or BepInEx is not installed
-
-Deployment paths:
-- **KK**: `[KK Install Directory]\BepInEx\plugins\KK_KKStudioSocket.dll`
-- **KKS**: `[KKS Install Directory]\BepInEx\plugins\KKS_KKStudioSocket.dll`
-
-### Building from WSL
-
-When building from WSL environment:
-
-```bash
-powershell.exe -ExecutionPolicy Bypass -File "build.ps1" rebuild
-```
-
-### Build Artifacts
-
-After successful build, the following files are generated in the `bin/` directory:
-
-- `KK_KKStudioSocket.dll` - For Koikatsu (KK)
-- `KKS_KKStudioSocket.dll` - For Koikatsu Sunshine (KKS)
-
-## Installation
-
-1. Copy the corresponding DLL file to the BepInEx `plugins` folder:
-   - For KK: `KK_KKStudioSocket.dll`
-   - For KKS: `KKS_KKStudioSocket.dll`
-
-2. Start the game and verify that the plugin is loaded
-
-## Configuration
-
-Plugin settings can be changed through the BepInEx Configuration Manager or configuration file:
-
-- **Server.Port** (Default: 8765) - WebSocket server port number
-- **Server.Enable** (Default: true) - WebSocket server enable/disable
-
-## WebSocket API
-
-### Connection
-
-Connect to the WebSocket server:
 ```
 ws://127.0.0.1:8765/ws
 ```
 
-### Commands
+All commands and responses use JSON format.
 
-#### Ping-Pong Communication (Connectivity Check)
+## 📡 Available Commands
+
+### 🏓 Ping-Pong (Connection Test)
+
+Test connection and latency:
 
 **Request:**
 ```json
@@ -138,88 +72,255 @@ ws://127.0.0.1:8765/ws
 }
 ```
 
-## Development
+### 🌳 Tree (Get Scene Structure)
 
-### Project Structure
+Retrieve the complete scene object hierarchy:
 
-```
-KKStudioSocket/
-├── src/
-│   ├── KKStudioSocket.Core/     # Shared code
-│   ├── KKStudioSocket.KK/       # KK-specific project
-│   └── KKStudioSocket.KKS/      # KKS-specific project
-├── build.ps1                   # Build script
-├── nuget.config                # NuGet package sources
-└── KKStudioSocket.sln          # Solution file
+**Request:**
+```json
+{
+  "type": "tree"
+}
 ```
 
-### Dependencies
+**Response:**
+```json
+[
+  {
+    "name": "Item Name",
+    "objectInfo": {
+      "id": 12345,
+      "type": "OCIItem"
+    },
+    "children": [...]
+  }
+]
+```
 
-#### Framework
-- BepInEx 5.4.22
-- IllusionModdingAPI (KKAPI/KKSAPI 1.38.0)
-- Harmony 2.9.0
+### 📝 Update (Modify Objects)
 
-#### External Libraries
-- **WebSocketSharp 1.0.3-rc11** - WebSocket communication
-- **Newtonsoft.Json 13.0.3** - JSON processing
+#### Transform Objects
 
-#### Target Frameworks
-- KK: .NET Framework 3.5
-- KKS: .NET Framework 4.6
+Change position, rotation, or scale of existing objects:
 
-## CI/CD
+**Request:**
+```json
+{
+  "type": "update",
+  "command": "transform",
+  "id": 12345,
+  "pos": [0.0, 1.0, 0.0],
+  "rot": [0.0, 90.0, 0.0],
+  "scale": [1.0, 1.0, 1.0]
+}
+```
 
-### GitHub Actions
+- `id`: Object ID (obtained from tree command)
+- `pos`: Position [X, Y, Z] (optional)
+- `rot`: Rotation [X, Y, Z] in degrees (optional)
+- `scale`: Scale [X, Y, Z] (optional)
 
-This project provides an automated CI/CD pipeline using GitHub Actions:
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Transform updated for object ID 12345"
+}
+```
 
-#### Build Workflow (`.github/workflows/build.yml`)
-- **Triggers**: Push, Pull Request, Release
-- **Jobs**:
-  - `build`: Debug/Release matrix build
-  - `package`: Automatic packaging on release (includes dependency DLLs)
-  - `lint`: Build analysis and code quality checks
-- **Artifacts**: 
-  - Automatic upload of built DLL files
-  - Release packages including dependency DLLs (WebSocketSharp, Newtonsoft.Json)
+**Response (Error):**
+```json
+{
+  "type": "error",
+  "message": "Object with ID 12345 not found"
+}
+```
 
-### CI Environment
-- **Runtime**: Windows Latest
-- **Build Tools**: MSBuild + NuGet
-- **Artifact Retention**: 30 days
-- **Dependencies**: Automatic collection and packaging
+### ➕ Add (Create Objects)
 
-## References
+#### Add Items
 
-This project is created with reference to existing MOD projects in the `KK_Plugins` repository. `KK_Plugins` contains numerous MOD implementation examples that are helpful for development:
+Add items to the scene:
 
-- **Project Structure**: Three-tier structure of Core/KK/KKS
-- **Build Configuration**: Directory.Build.props, nuget.config
-- **BepInEx Plugin Implementation Patterns**
-- **Various API Usage Examples**
+**Request:**
+```json
+{
+  "type": "add",
+  "command": "item",
+  "group": 0,
+  "category": 0,
+  "no": 1
+}
+```
 
-## License
+- `group`: Item group ID
+- `category`: Item category ID
+- `no`: Item number
 
-This project is licensed under the **GNU General Public License v3.0**.
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Item added successfully: group=0, category=0, no=1"
+}
+```
 
-This project references the structure and methods of [KK_Plugins](https://github.com/IllusionMods/KK_Plugins), and since KK_Plugins is licensed under GPL v3, the same license is applied as a derivative project.
+**Response (Error):**
+```json
+{
+  "type": "error",
+  "message": "Invalid item parameters: group=-1, category=0, no=1"
+}
+```
 
-For details, see the [LICENSE](LICENSE) file.
+#### Add Lights
 
-### Important Points
+Add lights to the scene:
 
-- This software is provided without warranty
-- When distributing source code, the same GPL v3 license must be applied
-- Commercial use is allowed but must comply with GPL v3 conditions
+**Request:**
+```json
+{
+  "type": "add",
+  "command": "light",
+  "no": 0
+}
+```
 
-For detailed license information, see [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html).
+- `no`: Light type (0=Directional, 1=Point, 2=Spot)
 
-## Contributing
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Light added successfully: no=0"
+}
+```
 
-Contributions to the project are welcome. Please submit pull requests or report issues.
+**Response (Error):**
+```json
+{
+  "type": "error",
+  "message": "Light limit reached or light check disabled"
+}
+```
 
-## Disclaimer
+#### Add Characters
 
-- This plugin is under development, so functionality and specifications may change
+Add characters to the scene:
+
+**Request:**
+```json
+{
+  "type": "add",
+  "command": "character",
+  "sex": "female",
+  "path": "C:/path/to/character.png"
+}
+```
+
+- `sex`: "female" or "male"
+- `path`: Absolute path to character file (.png)
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Female character added successfully: C:/path/to/character.png"
+}
+```
+
+**Response (Error):**
+```json
+{
+  "type": "error",
+  "message": "Character file not found: C:/path/to/character.png"
+}
+```
+
+## 💡 Usage Examples
+
+### Web Browser Console
+
+```javascript
+// Connect to WebSocket
+const ws = new WebSocket('ws://127.0.0.1:8765/ws');
+
+// Send ping
+ws.send(JSON.stringify({
+  "type": "ping",
+  "message": "hello",
+  "timestamp": Date.now()
+}));
+
+// Get scene structure
+ws.send(JSON.stringify({"type": "tree"}));
+
+// Add an item
+ws.send(JSON.stringify({
+  "type": "add",
+  "command": "item",
+  "group": 0,
+  "category": 0,
+  "no": 1
+}));
+
+// Move an object
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "transform",
+  "id": 12345,
+  "pos": [1.0, 2.0, 3.0]
+}));
+```
+
+### Python Example
+
+```python
+import websocket
+import json
+
+def on_message(ws, message):
+    response = json.loads(message)
+    print("Received:", response)
+
+def on_open(ws):
+    # Test connection
+    ws.send(json.dumps({"type": "ping", "message": "hello"}))
+    
+    # Get scene objects
+    ws.send(json.dumps({"type": "tree"}))
+
+ws = websocket.WebSocketApp("ws://127.0.0.1:8765/ws",
+                           on_message=on_message,
+                           on_open=on_open)
+ws.run_forever()
+```
+
+## 🔧 Troubleshooting
+
+### Connection Issues
+
+- **Port already in use**: Change the port in configuration settings
+- **Cannot connect**: Ensure the game is running and in Studio mode
+- **Plugin not loading**: Check BepInEx logs for errors
+
+### Command Issues
+
+- **Object not found**: Use the `tree` command to get valid object IDs
+- **Invalid parameters**: Check parameter ranges and data types
+- **Character file not found**: Ensure the character file path exists and is accessible
+
+## 🛠️ Development
+
+Want to contribute or build from source? See [CONTRIBUTING.md](CONTRIBUTING.md) for development information.
+
+## 📄 License
+
+This project is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE) for details.
+
+## ⚠️ Disclaimer
+
+- This plugin is under active development
 - Use at your own risk
+- Backup your save files before use
+- Some features may be experimental

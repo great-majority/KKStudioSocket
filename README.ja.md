@@ -1,122 +1,58 @@
 # KKStudioSocket
 
-[![Build and Test](https://github.com/great-majority/KKStudioSocket/actions/workflows/build.yml/badge.svg)](https://github.com/USER/KKStudioSocket/actions/workflows/build.yml)
+[![Build and Test](https://github.com/great-majority/KKStudioSocket/actions/workflows/build.yml/badge.svg)](https://github.com/great-majority/KKStudioSocket/actions/workflows/build.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-WebSocketサーバーとして機能し、外部からコイカツスタジオ向けにオブジェクトの編集ができるコイカツプラグインです。
+コイカツのスタジオオブジェクトを外部から制御できるWebSocketサーバーを提供するBepInXプラグインです。
 
-## 概要
+[English Documentation](README.md) | [開発者向けガイド](CONTRIBUTING.md)
 
-KKStudioSocketは、コイカツ（KK）とコイカツサンシャイン（KKS）の両方に対応したBepInExプラグインです。WebSocketサーバーを内蔵し、外部アプリケーションからスタジオの操作を可能にします。
+## 🎮 KKStudioSocketとは？
 
-## 対応ゲーム
+KKStudioSocketを使用すると、WebSocket接続を通じてコイカツのスタジオオブジェクトをリモートで制御できます：
 
-- **Koikatu (KK)** - .NET Framework 3.5
-- **Koikatu Sunshine (KKS)** - .NET Framework 4.6
+- **オブジェクトの追加**（アイテム、キャラクター、ライト）
+- **オブジェクトの変更**（位置、回転、スケール）
+- **シーン構造の取得**（階層ツリー形式）
+- **プログラムによるシーン制御**（外部アプリケーションから）
 
-## 機能
+## 📋 動作環境
 
-- **WebSocketサーバー**（デフォルトポート: 8765、設定で変更可能）
-- **リアルタイム通信**（WebSocketSharpライブラリ使用）
-- **JSONベースのコマンド処理**（Newtonsoft.Json使用）
-- **ping-pong通信**による疎通確認
-- **Transform操作**による外部からのスタジオアイテム編集
-- **設定可能**なサーバー有効/無効切り替え
+- **コイカツ (KK)** または **コイカツサンシャイン (KKS)**
+- **BepInEx 5.4.21+** がインストール済み
+- **IllusionModdingAPI** (KKAPI/KKSAPI) がインストール済み
 
-## ビルド方法
+## 🚀 インストール方法
 
-### 前提条件
+1. **ダウンロード**: [Releases](https://github.com/great-majority/KKStudioSocket/releases)から最新版をダウンロード
+2. **ファイル選択**: 適切なDLLファイルを展開
+   - コイカツ用: `KK_KKStudioSocket.dll`
+   - コイカツサンシャイン用: `KKS_KKStudioSocket.dll`
+3. **配置**: DLLファイルをゲームの`BepInEx/plugins/`フォルダにコピー
+4. **起動**: ゲームを起動してスタジオモードに入る
 
-- Visual Studio 2019/2022 (Community以上)
-- .NET Framework 3.5 および 4.6 開発ツール
+## ⚙️ 設定
 
-### ビルドコマンド
+プラグインはBepInEx Configuration Managerで変更可能な設定ファイルを作成します：
 
-PowerShellスクリプトを使用してビルドを行います：
+- **Server Port**（デフォルト: 8765）- WebSocketサーバーのポート番号
+- **Server Enable**（デフォルト: true）- WebSocketサーバーの有効/無効
 
-```powershell
-# 基本的なReleaseビルド
-.\build.ps1
+## 🔗 接続方法
 
-# Debugビルド
-.\build.ps1 build Debug
+任意のWebSocketクライアントでサーバーに接続：
 
-# クリーン + 復元 + ビルド
-.\build.ps1 rebuild
-
-# Debug と Release 両方をビルド
-.\build.ps1 all
-
-# クリーンのみ
-.\build.ps1 clean
-
-# パッケージ復元のみ
-.\build.ps1 restore
-
-# ゲームディレクトリへの自動配置
-.\build.ps1 deploy                    # 両方のゲームに配置
-.\build.ps1 deploy Release both       # 両方のゲームに配置（明示的）
-.\build.ps1 deploy Release kk         # KKのみに配置
-.\build.ps1 deploy Release kks        # KKSのみに配置
-
-# ヘルプ表示
-.\build.ps1 help
-```
-
-### 自動配置機能
-
-`deploy`コマンドを使用すると、ビルドしたDLLファイルを自動的にゲームのBepInExプラグインディレクトリにコピーできます：
-
-- **自動検出**: レジストリからゲームのインストールディレクトリを自動取得
-- **バックアップ機能**: 既存のファイルがある場合、`.backup`ファイルとして自動バックアップ
-- **エラーハンドリング**: ゲームが見つからない場合やBepInExがインストールされていない場合の警告表示
-
-配置先パス：
-- **KK**: `[KKインストールディレクトリ]\BepInEx\plugins\KK_KKStudioSocket.dll`
-- **KKS**: `[KKSインストールディレクトリ]\BepInEx\plugins\KKS_KKStudioSocket.dll`
-
-### WSLからのビルド
-
-WSL環境からビルドする場合：
-
-```bash
-powershell.exe -ExecutionPolicy Bypass -File "build.ps1" rebuild
-```
-
-### ビルド成果物
-
-ビルド成功後、`bin/`ディレクトリに以下のファイルが生成されます：
-
-- `KK_KKStudioSocket.dll` - コイカツ（KK）用
-- `KKS_KKStudioSocket.dll` - コイカツサンシャイン（KKS）用
-
-## インストール方法
-
-1. 対応するDLLファイルをBepInExの`plugins`フォルダにコピー
-   - KKの場合: `KK_KKStudioSocket.dll`
-   - KKSの場合: `KKS_KKStudioSocket.dll`
-
-2. ゲームを起動してプラグインが読み込まれることを確認
-
-## 設定
-
-プラグインの設定は、BepInExの設定マネージャーまたは設定ファイルから変更できます：
-
-- **Server.Port** (デフォルト: 8765) - WebSocketサーバーのポート番号
-- **Server.Enable** (デフォルト: true) - WebSocketサーバーの有効/無効
-
-## WebSocket API
-
-### 接続
-
-WebSocketサーバーに接続：
 ```
 ws://127.0.0.1:8765/ws
 ```
 
-### コマンド
+すべてのコマンドとレスポンスはJSON形式を使用します。
 
-#### Ping-Pong通信（疎通確認）
+## 📡 利用可能なコマンド
+
+### 🏓 Ping-Pong（接続テスト）
+
+接続状況と遅延をテスト：
 
 **リクエスト:**
 ```json
@@ -136,88 +72,255 @@ ws://127.0.0.1:8765/ws
 }
 ```
 
-## 開発
+### 🌳 Tree（シーン構造取得）
 
-### プロジェクト構造
+シーン内のオブジェクト階層構造を取得：
 
-```
-KKStudioSocket/
-├── src/
-│   ├── KKStudioSocket.Core/     # 共通コード
-│   ├── KKStudioSocket.KK/       # KK専用プロジェクト
-│   └── KKStudioSocket.KKS/      # KKS専用プロジェクト
-├── build.ps1                   # ビルドスクリプト
-├── nuget.config                # NuGetパッケージソース
-└── KKStudioSocket.sln          # ソリューションファイル
+**リクエスト:**
+```json
+{
+  "type": "tree"
+}
 ```
 
-### 依存関係
+**レスポンス:**
+```json
+[
+  {
+    "name": "アイテム名",
+    "objectInfo": {
+      "id": 12345,
+      "type": "OCIItem"
+    },
+    "children": [...]
+  }
+]
+```
 
-#### フレームワーク
-- BepInEx 5.4.22
-- IllusionModdingAPI (KKAPI/KKSAPI 1.38.0)
-- Harmony 2.9.0
+### 📝 Update（オブジェクト変更）
 
-#### 外部ライブラリ
-- **WebSocketSharp 1.0.3-rc11** - WebSocket通信
-- **Newtonsoft.Json 13.0.3** - JSON処理
+#### Transform（トランスフォーム）
 
-#### ターゲットフレームワーク
-- KK: .NET Framework 3.5
-- KKS: .NET Framework 4.6
+既存オブジェクトの位置、回転、スケールを変更：
 
-## CI/CD
+**リクエスト:**
+```json
+{
+  "type": "update",
+  "command": "transform",
+  "id": 12345,
+  "pos": [0.0, 1.0, 0.0],
+  "rot": [0.0, 90.0, 0.0],
+  "scale": [1.0, 1.0, 1.0]
+}
+```
 
-### GitHub Actions
+- `id`: オブジェクトID（treeコマンドで取得）
+- `pos`: 位置 [X, Y, Z]（オプション）
+- `rot`: 回転 [X, Y, Z] 度数（オプション）
+- `scale`: スケール [X, Y, Z]（オプション）
 
-このプロジェクトはGitHub Actionsを使用した自動化されたCI/CDパイプラインを提供しています：
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Transform updated for object ID 12345"
+}
+```
 
-#### ビルドワークフロー (`.github/workflows/build.yml`)
-- **トリガー**: プッシュ、プルリクエスト、リリース
-- **ジョブ**:
-  - `build`: Debug/Releaseマトリックスビルド
-  - `package`: リリース時の自動パッケージング（依存関係DLL含む）
-  - `lint`: ビルド分析とコード品質チェック
-- **成果物**: 
-  - ビルドされたDLLファイルの自動アップロード
-  - 依存関係DLL（WebSocketSharp、Newtonsoft.Json）を含むリリースパッケージ
+**レスポンス（エラー）:**
+```json
+{
+  "type": "error",
+  "message": "Object with ID 12345 not found"
+}
+```
 
-### CI環境
-- **実行環境**: Windows Latest
-- **ビルドツール**: MSBuild + NuGet
-- **アーティファクト保持期間**: 30日間
-- **依存関係**: 自動収集・パッケージング
+### ➕ Add（オブジェクト作成）
 
-## 参考資料
+#### アイテム追加
 
-このプロジェクトは`KK_Plugins`リポジトリにある既存のMODプロジェクトを参考に作成されています。`KK_Plugins`には多数のMODの実装例があり、開発の際の参考になります：
+シーンにアイテムを追加：
 
-- **プロジェクト構造**: Core/KK/KKSの3層構造
-- **ビルド設定**: Directory.Build.props、nuget.config
-- **BepInExプラグインの実装パターン**
-- **各種APIの使用例**
+**リクエスト:**
+```json
+{
+  "type": "add",
+  "command": "item",
+  "group": 0,
+  "category": 0,
+  "no": 1
+}
+```
 
-## ライセンス
+- `group`: アイテムグループID
+- `category`: アイテムカテゴリID
+- `no`: アイテム番号
 
-このプロジェクトは **GNU General Public License v3.0** の下でライセンスされています。
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Item added successfully: group=0, category=0, no=1"
+}
+```
 
-このプロジェクトは[KK_Plugins](https://github.com/IllusionMods/KK_Plugins)の構造と手法を参考にしており、KK_PluginsがGPL v3ライセンスのため、派生プロジェクトとして同じライセンスを適用しています。
+**レスポンス（エラー）:**
+```json
+{
+  "type": "error",
+  "message": "Invalid item parameters: group=-1, category=0, no=1"
+}
+```
 
-詳細については [LICENSE](LICENSE) ファイルをご確認ください。
+#### ライト追加
 
-### 重要な点
+シーンにライトを追加：
 
-- このソフトウェアは無保証で提供されます
-- ソースコードの配布時は同じGPL v3ライセンスを適用する必要があります
-- 商用利用も可能ですが、GPL v3の条件に従う必要があります
+**リクエスト:**
+```json
+{
+  "type": "add",
+  "command": "light",
+  "no": 0
+}
+```
 
-ライセンスに関する詳細は [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html) をご確認ください。
+- `no`: ライトタイプ（0=指向性、1=点光源、2=スポット）
 
-## 貢献
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Light added successfully: no=0"
+}
+```
 
-プロジェクトへの貢献は歓迎します。プルリクエストやイシューの報告をお願いします。
+**レスポンス（エラー）:**
+```json
+{
+  "type": "error",
+  "message": "Light limit reached or light check disabled"
+}
+```
 
-## 注意事項
+#### キャラクター追加
 
-- このプラグインは開発中のため、機能や仕様が変更される可能性があります
-- 使用は自己責任でお願いします
+シーンにキャラクターを追加：
+
+**リクエスト:**
+```json
+{
+  "type": "add",
+  "command": "character",
+  "sex": "female",
+  "path": "C:/path/to/character.png"
+}
+```
+
+- `sex`: "female"または"male"
+- `path`: キャラクターファイル（.png）の絶対パス
+
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Female character added successfully: C:/path/to/character.png"
+}
+```
+
+**レスポンス（エラー）:**
+```json
+{
+  "type": "error",
+  "message": "Character file not found: C:/path/to/character.png"
+}
+```
+
+## 💡 使用例
+
+### ブラウザコンソール
+
+```javascript
+// WebSocket接続
+const ws = new WebSocket('ws://127.0.0.1:8765/ws');
+
+// Ping送信
+ws.send(JSON.stringify({
+  "type": "ping",
+  "message": "hello",
+  "timestamp": Date.now()
+}));
+
+// シーン構造取得
+ws.send(JSON.stringify({"type": "tree"}));
+
+// アイテム追加
+ws.send(JSON.stringify({
+  "type": "add",
+  "command": "item",
+  "group": 0,
+  "category": 0,
+  "no": 1
+}));
+
+// オブジェクト移動
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "transform",
+  "id": 12345,
+  "pos": [1.0, 2.0, 3.0]
+}));
+```
+
+### Python例
+
+```python
+import websocket
+import json
+
+def on_message(ws, message):
+    response = json.loads(message)
+    print("受信:", response)
+
+def on_open(ws):
+    # 接続テスト
+    ws.send(json.dumps({"type": "ping", "message": "hello"}))
+    
+    # シーンオブジェクト取得
+    ws.send(json.dumps({"type": "tree"}))
+
+ws = websocket.WebSocketApp("ws://127.0.0.1:8765/ws",
+                           on_message=on_message,
+                           on_open=on_open)
+ws.run_forever()
+```
+
+## 🔧 トラブルシューティング
+
+### 接続問題
+
+- **ポートが使用中**: 設定でポート番号を変更
+- **接続できない**: ゲームが起動してスタジオモードになっているか確認
+- **プラグインが読み込まれない**: BepInXログでエラーを確認
+
+### コマンド問題
+
+- **オブジェクトが見つからない**: `tree`コマンドで有効なオブジェクトIDを取得
+- **無効なパラメータ**: パラメータの範囲とデータ型を確認
+- **キャラクターファイルが見つからない**: キャラクターファイルのパスが存在し、アクセス可能か確認
+
+## 🛠️ 開発
+
+ソースからビルドしたい、または貢献したい場合は、[CONTRIBUTING.md](CONTRIBUTING.md)を参照してください。
+
+## 📄 ライセンス
+
+このプロジェクトはGNU General Public License v3.0でライセンスされています。詳細は[LICENSE](LICENSE)を参照してください。
+
+## ⚠️ 免責事項
+
+- このプラグインは開発中です
+- 自己責任でご使用ください
+- 使用前にセーブファイルをバックアップしてください
+- 一部の機能は実験的なものです
