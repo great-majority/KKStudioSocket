@@ -191,6 +191,17 @@ namespace KKStudioSocket
                         }
                         break;
 
+                    case "camera":
+                        var cameraCmd = JsonConvert.DeserializeObject<CameraCommand>(e.Data);
+                        if (cameraCmd != null)
+                        {
+                            EnqueueAction(() => {
+                                var cameraHandler = new CameraCommandHandler(Send);
+                                cameraHandler.Handle(cameraCmd);
+                            });
+                        }
+                        break;
+
                     default:
                         KKStudioSocketPlugin.Logger.LogWarning($"Unsupported command type: {baseCommand.type}");
                         break;
@@ -277,5 +288,15 @@ namespace KKStudioSocket
     public class DeleteCommand : BaseCommand
     {
         public int id;
+    }
+
+    [Serializable]
+    public class CameraCommand : BaseCommand
+    {
+        public string command;
+        public float[] pos;
+        public float[] rot;
+        public float fov;
+        public int cameraId; // For switching to specific camera object
     }
 }

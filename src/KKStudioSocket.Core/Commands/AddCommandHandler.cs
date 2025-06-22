@@ -32,6 +32,9 @@ namespace KKStudioSocket.Commands
                     case "folder":
                         HandleAddFolder(cmd);
                         break;
+                    case "camera":
+                        HandleAddCamera(cmd);
+                        break;
                     default:
                         KKStudioSocketPlugin.Logger.LogWarning($"Unsupported add command: {cmd.command}");
                         SendErrorResponse($"Unsupported add command: {cmd.command}");
@@ -184,6 +187,34 @@ namespace KKStudioSocket.Commands
             {
                 KKStudioSocketPlugin.Logger.LogError($"Add folder error: {ex.Message}");
                 SendErrorResponse($"Add folder error: {ex.Message}");
+            }
+        }
+
+        private void HandleAddCamera(AddCommand cmd)
+        {
+            try
+            {
+                // Call AddObjectCamera directly to get the created object
+                var newCamera = Studio.AddObjectCamera.Add();
+                int objectId = newCamera.objectInfo.dicKey;
+
+                // If name is specified, rename the camera
+                if (!string.IsNullOrEmpty(cmd.name))
+                {
+                    newCamera.name = cmd.name;
+                    KKStudioSocketPlugin.Logger.LogInfo($"Camera added and renamed to: {cmd.name}, objectId={objectId}");
+                    SendSuccessResponseWithId($"Camera added successfully with name: {cmd.name}", objectId);
+                }
+                else
+                {
+                    KKStudioSocketPlugin.Logger.LogInfo($"Camera added successfully, objectId={objectId}");
+                    SendSuccessResponseWithId("Camera added successfully", objectId);
+                }
+            }
+            catch (Exception ex)
+            {
+                KKStudioSocketPlugin.Logger.LogError($"Add camera error: {ex.Message}");
+                SendErrorResponse($"Add camera error: {ex.Message}");
             }
         }
 

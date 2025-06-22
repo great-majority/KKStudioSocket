@@ -50,6 +50,26 @@ All commands and responses use JSON format.
 
 ## 📡 Available Commands
 
+### Table of Contents
+- [🏓 Ping-Pong (Connection Test)](#-ping-pong-connection-test)
+- [🌲 Tree (Scene Structure)](#-tree-scene-structure)
+- [🔄 Update (Object Transform)](#-update-object-transform)
+- [➕ Add (Object Creation)](#-add-object-creation)
+  - [Add Items](#add-items)
+  - [Add Lights](#add-lights)
+  - [Add Characters](#add-characters)
+  - [Add Folders](#add-folders)
+  - [Add Cameras](#add-cameras)
+- [🌳 Hierarchy (Object Relationships)](#-hierarchy-object-relationships)
+  - [Attach Object](#attach-object)
+  - [Detach Object](#detach-object)
+- [🗑️ Delete (Object Deletion)](#️-delete-object-deletion)
+- [🎥 Camera (Viewport Control)](#-camera-viewport-control)
+  - [Set Current View](#set-current-view)
+  - [Switch to Camera Object](#switch-to-camera-object)
+  - [Switch to Free Camera](#switch-to-free-camera)
+  - [Get Current View](#get-current-view)
+
 ### 🏓 Ping-Pong (Connection Test)
 
 Test connection and latency:
@@ -268,6 +288,36 @@ Add folders to the scene for organizing objects:
 }
 ```
 
+#### Add Cameras
+
+Add camera objects to the scene:
+
+**Request:**
+```json
+{
+  "type": "add",
+  "command": "camera"
+}
+```
+
+**Request (with name):**
+```json
+{
+  "type": "add",
+  "command": "camera",
+  "name": "Main Camera"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Camera added successfully",
+  "objectId": 12345
+}
+```
+
 ### 🌳 Hierarchy (Object Relationships)
 
 Manage parent-child relationships between objects:
@@ -346,6 +396,118 @@ Delete an object from the scene:
 }
 ```
 
+### 🎥 Camera (Viewport Control)
+
+Control the current viewport/camera view that the user sees through:
+
+#### Set Current View
+
+Set the camera position, rotation, and field of view:
+
+**Request:**
+```json
+{
+  "type": "camera",
+  "command": "setview",
+  "pos": [0.0, 1.0, 5.0],
+  "rot": [10.0, 0.0, 0.0],
+  "fov": 35.0
+}
+```
+
+- `pos`: Camera position [x, y, z] (optional)
+- `rot`: Camera rotation [pitch, yaw, roll] in degrees (optional)
+- `fov`: Field of view in degrees (optional)
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Camera view updated successfully"
+}
+```
+
+#### Switch to Camera Object
+
+Switch the viewport to a specific camera object:
+
+**Request:**
+```json
+{
+  "type": "camera",
+  "command": "switch",
+  "cameraId": 12345
+}
+```
+
+- `cameraId`: ID of the camera object to switch to
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Switched to camera 12345"
+}
+```
+
+#### Switch to Free Camera
+
+Return to free camera mode (default):
+
+**Request:**
+```json
+{
+  "type": "camera",
+  "command": "free"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Switched to free camera mode"
+}
+```
+
+#### Get Current View
+
+Retrieve current camera information:
+
+**Request:**
+```json
+{
+  "type": "camera",
+  "command": "getview"
+}
+```
+
+**Response (Free Camera Mode):**
+```json
+{
+  "type": "success",
+  "message": "Current camera view retrieved",
+  "pos": [0.0, 1.0, 5.0],
+  "rot": [10.0, 0.0, 0.0],
+  "fov": 35.0,
+  "mode": "free",
+  "activeCameraId": null
+}
+```
+
+**Response (Camera Object Mode):**
+```json
+{
+  "type": "success",
+  "message": "Current camera view retrieved",
+  "pos": [0.0, 1.0, 5.0],
+  "rot": [10.0, 0.0, 0.0],
+  "fov": 35.0,
+  "mode": "object",
+  "activeCameraId": 12345
+}
+```
+
 ## 💡 Usage Examples
 
 ### Web Browser Console
@@ -400,6 +562,28 @@ ws.send(JSON.stringify({
 ws.send(JSON.stringify({
   "type": "delete",
   "id": 12345
+}));
+
+// Add a camera object
+ws.send(JSON.stringify({
+  "type": "add",
+  "command": "camera",
+  "name": "Main Camera"
+}));
+
+// Set camera view
+ws.send(JSON.stringify({
+  "type": "camera",
+  "command": "setview",
+  "pos": [0.0, 2.0, 5.0],
+  "rot": [15.0, 0.0, 0.0],
+  "fov": 35.0
+}));
+
+// Get current camera view
+ws.send(JSON.stringify({
+  "type": "camera",
+  "command": "getview"
 }));
 ```
 

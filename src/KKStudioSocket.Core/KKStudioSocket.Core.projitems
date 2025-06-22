@@ -18,5 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddCommandHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\HierarchyCommandHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\DeleteCommandHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\CameraCommandHandler.cs" />
   </ItemGroup>
 </Project>

@@ -50,6 +50,26 @@ ws://127.0.0.1:8765/ws
 
 ## 📡 利用可能なコマンド
 
+### 目次
+- [🏓 Ping-Pong（接続テスト）](#-ping-pong接続テスト)
+- [🌲 Tree（シーン構造）](#-treeシーン構造)
+- [🔄 Update（オブジェクト変形）](#-updateオブジェクト変形)
+- [➕ Add（オブジェクト作成）](#-addオブジェクト作成)
+  - [アイテム追加](#アイテム追加)
+  - [ライト追加](#ライト追加)
+  - [キャラクター追加](#キャラクター追加)
+  - [フォルダ追加](#フォルダ追加)
+  - [カメラ追加](#カメラ追加)
+- [🌳 Hierarchy（オブジェクト関係）](#-hierarchyオブジェクト関係)
+  - [オブジェクトアタッチ](#オブジェクトアタッチ)
+  - [親からデタッチ](#親からデタッチ)
+- [🗑️ Delete（オブジェクト削除）](#️-deleteオブジェクト削除)
+- [🎥 Camera（ビューポート制御）](#-cameraビューポート制御)
+  - [現在のビュー設定](#現在のビュー設定)
+  - [カメラオブジェクトに切り替え](#カメラオブジェクトに切り替え)
+  - [フリーカメラに切り替え](#フリーカメラに切り替え)
+  - [現在のビュー取得](#現在のビュー取得)
+
 ### 🏓 Ping-Pong（接続テスト）
 
 接続状況と遅延をテスト：
@@ -268,6 +288,36 @@ ws://127.0.0.1:8765/ws
 }
 ```
 
+#### カメラ追加
+
+シーンにカメラオブジェクトを追加：
+
+**リクエスト:**
+```json
+{
+  "type": "add",
+  "command": "camera"
+}
+```
+
+**リクエスト（名前付き）:**
+```json
+{
+  "type": "add",
+  "command": "camera",
+  "name": "メインカメラ"
+}
+```
+
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Camera added successfully",
+  "objectId": 12345
+}
+```
+
 ### 🌳 Hierarchy（オブジェクト関係）
 
 オブジェクト間の親子関係を管理：
@@ -346,6 +396,118 @@ ws://127.0.0.1:8765/ws
 }
 ```
 
+### 🎥 Camera（ビューポート制御）
+
+ユーザーが見ている現在のビューポート/カメラビューを制御：
+
+#### 現在のビュー設定
+
+カメラの位置、回転、視野角を設定：
+
+**リクエスト:**
+```json
+{
+  "type": "camera",
+  "command": "setview",
+  "pos": [0.0, 1.0, 5.0],
+  "rot": [10.0, 0.0, 0.0],
+  "fov": 35.0
+}
+```
+
+- `pos`: カメラ位置 [x, y, z]（オプション）
+- `rot`: カメラ回転 [pitch, yaw, roll] 度単位（オプション）
+- `fov`: 視野角 度単位（オプション）
+
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Camera view updated successfully"
+}
+```
+
+#### カメラオブジェクトに切り替え
+
+ビューポートを特定のカメラオブジェクトに切り替え：
+
+**リクエスト:**
+```json
+{
+  "type": "camera",
+  "command": "switch",
+  "cameraId": 12345
+}
+```
+
+- `cameraId`: 切り替え先のカメラオブジェクトのID
+
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Switched to camera 12345"
+}
+```
+
+#### フリーカメラに切り替え
+
+フリーカメラモード（デフォルト）に戻る：
+
+**リクエスト:**
+```json
+{
+  "type": "camera",
+  "command": "free"
+}
+```
+
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Switched to free camera mode"
+}
+```
+
+#### 現在のビュー取得
+
+現在のカメラ情報を取得：
+
+**リクエスト:**
+```json
+{
+  "type": "camera",
+  "command": "getview"
+}
+```
+
+**レスポンス（フリーカメラモード）:**
+```json
+{
+  "type": "success",
+  "message": "Current camera view retrieved",
+  "pos": [0.0, 1.0, 5.0],
+  "rot": [10.0, 0.0, 0.0],
+  "fov": 35.0,
+  "mode": "free",
+  "activeCameraId": null
+}
+```
+
+**レスポンス（カメラオブジェクトモード）:**
+```json
+{
+  "type": "success",
+  "message": "Current camera view retrieved",
+  "pos": [0.0, 1.0, 5.0],
+  "rot": [10.0, 0.0, 0.0],
+  "fov": 35.0,
+  "mode": "object",
+  "activeCameraId": 12345
+}
+```
+
 ## 💡 使用例
 
 ### ブラウザコンソール
@@ -400,6 +562,28 @@ ws.send(JSON.stringify({
 ws.send(JSON.stringify({
   "type": "delete",
   "id": 12345
+}));
+
+// カメラオブジェクト追加
+ws.send(JSON.stringify({
+  "type": "add",
+  "command": "camera",
+  "name": "メインカメラ"
+}));
+
+// カメラビュー設定
+ws.send(JSON.stringify({
+  "type": "camera",
+  "command": "setview",
+  "pos": [0.0, 2.0, 5.0],
+  "rot": [15.0, 0.0, 0.0],
+  "fov": 35.0
+}));
+
+// 現在のカメラビュー取得
+ws.send(JSON.stringify({
+  "type": "camera",
+  "command": "getview"
 }));
 ```
 
