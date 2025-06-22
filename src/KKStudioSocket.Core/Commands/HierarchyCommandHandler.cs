@@ -135,11 +135,28 @@ namespace KKStudioSocket.Commands
                 // Detach from parent
                 if (oci.parentInfo != null)
                 {
+                    KKStudioSocketPlugin.Logger.LogDebug("Starting OnDetach...");
                     oci.OnDetach();
-                    
+                    KKStudioSocketPlugin.Logger.LogDebug("OnDetach completed");
+
                     // Update UI tree to reflect detachment
-                    Studio.Studio.Instance.m_TreeNodeCtrl.SetParent(oci.treeNodeObject, null);
-                    
+                    if (oci.treeNodeObject != null)
+                    {
+                        try
+                        {
+                            KKStudioSocketPlugin.Logger.LogDebug("Updating UI tree...");
+                            var treeCtrl = Studio.Studio.Instance.m_TreeNodeCtrl;
+                            treeCtrl.SelectSingle(oci.treeNodeObject);
+                            treeCtrl.RemoveNode();
+                            KKStudioSocketPlugin.Logger.LogDebug("UI tree update completed");
+                        }
+                        catch (Exception uiEx)
+                        {
+                            KKStudioSocketPlugin.Logger.LogWarning($"UI update failed, but detach succeeded: {uiEx.Message}");
+                            // Continue - detach operation was successful even if UI update failed
+                        }
+                    }
+
                     KKStudioSocketPlugin.Logger.LogInfo($"Object {cmd.childId} detached from parent");
                     SendSuccessResponse($"Object {cmd.childId} detached from parent");
                 }
