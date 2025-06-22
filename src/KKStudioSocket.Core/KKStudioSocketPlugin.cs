@@ -169,6 +169,28 @@ namespace KKStudioSocket
                         }
                         break;
 
+                    case "hierarchy":
+                        var hierarchyCmd = JsonConvert.DeserializeObject<HierarchyCommand>(e.Data);
+                        if (hierarchyCmd != null)
+                        {
+                            EnqueueAction(() => {
+                                var hierarchyHandler = new HierarchyCommandHandler(Send);
+                                hierarchyHandler.Handle(hierarchyCmd);
+                            });
+                        }
+                        break;
+
+                    case "delete":
+                        var deleteCmd = JsonConvert.DeserializeObject<DeleteCommand>(e.Data);
+                        if (deleteCmd != null)
+                        {
+                            EnqueueAction(() => {
+                                var deleteHandler = new DeleteCommandHandler(Send);
+                                deleteHandler.Handle(deleteCmd);
+                            });
+                        }
+                        break;
+
                     default:
                         KKStudioSocketPlugin.Logger.LogWarning($"Unsupported command type: {baseCommand.type}");
                         break;
@@ -235,9 +257,25 @@ namespace KKStudioSocket
         public string command;
         public int group;
         public int category;
-        public int no;
+        public int itemId;
+        public int lightId;
         public int? parentId;
         public string path;
         public string sex;
+        public string name;
+    }
+
+    [Serializable]
+    public class HierarchyCommand : BaseCommand
+    {
+        public string command;
+        public int childId;
+        public int parentId; // Required for attach, ignored for detach
+    }
+
+    [Serializable]
+    public class DeleteCommand : BaseCommand
+    {
+        public int id;
     }
 }
