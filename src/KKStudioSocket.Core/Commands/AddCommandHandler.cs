@@ -8,7 +8,7 @@ namespace KKStudioSocket.Commands
     public class AddCommandHandler : BaseCommandHandler
     {
         public AddCommandHandler(System.Action<string> sendCallback) : base(sendCallback) { }
-        
+
         public void Handle(AddCommand cmd)
         {
             ApplyAdd(cmd);
@@ -56,11 +56,12 @@ namespace KKStudioSocket.Commands
                     return;
                 }
 
-                // Call Studio.AddItem to add the item
-                Studio.Studio.Instance.AddItem(cmd.group, cmd.category, cmd.itemId);
-                
-                KKStudioSocketPlugin.Logger.LogInfo($"Item added successfully: group={cmd.group}, category={cmd.category}, itemId={cmd.itemId}");
-                SendSuccessResponse($"Item added successfully: group={cmd.group}, category={cmd.category}, itemId={cmd.itemId}");
+                // Call AddObjectItem directly to get the created object
+                var newItem = Studio.AddObjectItem.Add(cmd.group, cmd.category, cmd.itemId);
+                int objectId = newItem.objectInfo.dicKey;
+
+                KKStudioSocketPlugin.Logger.LogInfo($"Item added successfully: group={cmd.group}, category={cmd.category}, itemId={cmd.itemId}, objectId={objectId}");
+                SendSuccessResponseWithId($"Item added successfully: group={cmd.group}, category={cmd.category}, itemId={cmd.itemId}", objectId);
             }
             catch (Exception ex)
             {
@@ -89,11 +90,12 @@ namespace KKStudioSocket.Commands
                     return;
                 }
 
-                // Call Studio.AddLight to add the light
-                Studio.Studio.Instance.AddLight(cmd.lightId);
-                
-                KKStudioSocketPlugin.Logger.LogInfo($"Light added successfully: lightId={cmd.lightId}");
-                SendSuccessResponse($"Light added successfully: lightId={cmd.lightId}");
+                // Call AddObjectLight directly to get the created object
+                var newLight = Studio.AddObjectLight.Add(cmd.lightId);
+                int objectId = newLight.objectInfo.dicKey;
+
+                KKStudioSocketPlugin.Logger.LogInfo($"Light added successfully: lightId={cmd.lightId}, objectId={objectId}");
+                SendSuccessResponseWithId($"Light added successfully: lightId={cmd.lightId}", objectId);
             }
             catch (Exception ex)
             {
@@ -133,14 +135,16 @@ namespace KKStudioSocket.Commands
                 switch (cmd.sex.ToLower())
                 {
                     case "female":
-                        Studio.Studio.Instance.AddFemale(cmd.path);
-                        KKStudioSocketPlugin.Logger.LogInfo($"Female character added successfully: {cmd.path}");
-                        SendSuccessResponse($"Female character added successfully: {cmd.path}");
+                        var newFemale = Studio.AddObjectFemale.Add(cmd.path);
+                        int femaleId = newFemale.objectInfo.dicKey;
+                        KKStudioSocketPlugin.Logger.LogInfo($"Female character added successfully: {cmd.path}, objectId={femaleId}");
+                        SendSuccessResponseWithId($"Female character added successfully: {cmd.path}", femaleId);
                         break;
                     case "male":
-                        Studio.Studio.Instance.AddMale(cmd.path);
-                        KKStudioSocketPlugin.Logger.LogInfo($"Male character added successfully: {cmd.path}");
-                        SendSuccessResponse($"Male character added successfully: {cmd.path}");
+                        var newMale = Studio.AddObjectMale.Add(cmd.path);
+                        int maleId = newMale.objectInfo.dicKey;
+                        KKStudioSocketPlugin.Logger.LogInfo($"Male character added successfully: {cmd.path}, objectId={maleId}");
+                        SendSuccessResponseWithId($"Male character added successfully: {cmd.path}", maleId);
                         break;
                     default:
                         KKStudioSocketPlugin.Logger.LogWarning($"Invalid character sex: {cmd.sex} (must be 'female' or 'male')");
@@ -159,30 +163,22 @@ namespace KKStudioSocket.Commands
         {
             try
             {
-                // Call Studio.AddFolder to add the folder
-                Studio.Studio.Instance.AddFolder();
-                
-                // If name is specified, try to rename the newly created folder
+                // Call AddObjectFolder directly to get the created object
+                var newFolder = Studio.AddObjectFolder.Add();
+                int objectId = newFolder.objectInfo.dicKey;
+
+                // If name is specified, rename the folder
                 if (!string.IsNullOrEmpty(cmd.name))
                 {
-                    // Get the last added folder (most recently created)
-                    var folders = Studio.Studio.Instance.dicInfo.Values
-                        .Where(info => info is Studio.OCIFolder)
-                        .Cast<Studio.OCIFolder>()
-                        .OrderByDescending(f => f.objectInfo.dicKey)
-                        .FirstOrDefault();
-                    
-                    if (folders != null)
-                    {
-                        folders.name = cmd.name;
-                        KKStudioSocketPlugin.Logger.LogInfo($"Folder added and renamed to: {cmd.name}");
-                        SendSuccessResponse($"Folder added successfully with name: {cmd.name}");
-                        return;
-                    }
+                    newFolder.name = cmd.name;
+                    KKStudioSocketPlugin.Logger.LogInfo($"Folder added and renamed to: {cmd.name}, objectId={objectId}");
+                    SendSuccessResponseWithId($"Folder added successfully with name: {cmd.name}", objectId);
                 }
-                
-                KKStudioSocketPlugin.Logger.LogInfo("Folder added successfully");
-                SendSuccessResponse("Folder added successfully");
+                else
+                {
+                    KKStudioSocketPlugin.Logger.LogInfo($"Folder added successfully, objectId={objectId}");
+                    SendSuccessResponseWithId("Folder added successfully", objectId);
+                }
             }
             catch (Exception ex)
             {
@@ -190,10 +186,16 @@ namespace KKStudioSocket.Commands
                 SendErrorResponse($"Add folder error: {ex.Message}");
             }
         }
-        
+
         private void SendSuccessResponse(string message)
         {
             var response = new { type = "success", message = message };
+            Send(Newtonsoft.Json.JsonConvert.SerializeObject(response));
+        }
+
+        private void SendSuccessResponseWithId(string message, int objectId)
+        {
+            var response = new { type = "success", message = message, objectId = objectId };
             Send(Newtonsoft.Json.JsonConvert.SerializeObject(response));
         }
         
