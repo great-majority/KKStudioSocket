@@ -103,7 +103,7 @@ namespace KKStudioSocket.Commands
                     return;
                 }
 
-                // Switch to this camera
+                // Switch to this camera (this updates UI automatically)
                 Studio.Studio.Instance.ChangeCamera(oci);
 
                 KKStudioSocketPlugin.Logger.LogInfo($"Switched to camera {cmd.cameraId}");
@@ -159,18 +159,8 @@ namespace KKStudioSocket.Commands
             {
                 var studio = Studio.Studio.Instance;
 
-                // Deactivate all camera objects to return to free camera mode
-                var activeCameras = studio.dicInfo.Values
-                    .OfType<Studio.OCICamera>()
-                    .Where(cam => cam.cameraInfo.active)
-                    .ToList();
-
-                foreach (var camera in activeCameras)
-                {
-                    camera.cameraInfo.active = false;
-                }
-
-                // Update camera system
+                // Use Studio's method to properly switch to free camera (null camera)
+                // This will handle all UI updates automatically
                 studio.ChangeCamera(null);
 
                 KKStudioSocketPlugin.Logger.LogInfo("Switched to free camera mode");

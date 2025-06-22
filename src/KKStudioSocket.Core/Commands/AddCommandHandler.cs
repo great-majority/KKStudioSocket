@@ -198,10 +198,22 @@ namespace KKStudioSocket.Commands
                 var newCamera = Studio.AddObjectCamera.Add();
                 int objectId = newCamera.objectInfo.dicKey;
 
+                // Update UI components like Studio.AddCamera() does
+                var studio = Studio.Studio.Instance;
+                studio.cameraSelector.Init(); // Update camera dropdown
+                
+                // Auto-select if option is enabled (like Studio.AddCamera())
+                if (Studio.Studio.optionSystem.autoSelect && newCamera != null)
+                {
+                    studio.m_TreeNodeCtrl.SelectSingle(newCamera.treeNodeObject);
+                }
+
                 // If name is specified, rename the camera
                 if (!string.IsNullOrEmpty(cmd.name))
                 {
                     newCamera.name = cmd.name;
+                    // Update UI again after name change
+                    studio.cameraSelector.Init();
                     KKStudioSocketPlugin.Logger.LogInfo($"Camera added and renamed to: {cmd.name}, objectId={objectId}");
                     SendSuccessResponseWithId($"Camera added successfully with name: {cmd.name}", objectId);
                 }
