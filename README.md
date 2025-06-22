@@ -149,13 +149,13 @@ Add items to the scene:
   "command": "item",
   "group": 0,
   "category": 0,
-  "no": 1
+  "itemId": 1
 }
 ```
 
 - `group`: Item group ID
 - `category`: Item category ID
-- `no`: Item number
+- `itemId`: Item number
 
 **Response (Success):**
 ```json
@@ -182,11 +182,11 @@ Add lights to the scene:
 {
   "type": "add",
   "command": "light",
-  "no": 0
+  "lightId": 0
 }
 ```
 
-- `no`: Light type (0=Directional, 1=Point, 2=Spot)
+- `lightId`: Light type (0=Directional, 1=Point, 2=Spot)
 
 **Response (Success):**
 ```json
@@ -237,6 +237,115 @@ Add characters to the scene:
 }
 ```
 
+#### Add Folders
+
+Add folders to the scene for organizing objects:
+
+**Request:**
+```json
+{
+  "type": "add",
+  "command": "folder",
+  "name": "My Folder"
+}
+```
+
+- `name`: Folder name (optional, defaults to "フォルダー")
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Folder added successfully with name: My Folder"
+}
+```
+
+**Response (Error):**
+```json
+{
+  "type": "error",
+  "message": "Add folder error: [error details]"
+}
+```
+
+### 🌳 Hierarchy (Object Relationships)
+
+Manage parent-child relationships between objects:
+
+#### Attach Object
+
+Attach an object to another object (folders, items, characters can be parents):
+
+**Request:**
+```json
+{
+  "type": "hierarchy",
+  "command": "attach",
+  "childId": 12345,
+  "parentId": 67890
+}
+```
+
+- `childId`: ID of the object to be attached
+- `parentId`: ID of the parent object (required)
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Object 12345 attached to parent 67890"
+}
+```
+
+#### Detach from Parent
+
+Detach an object from its parent:
+
+**Request:**
+```json
+{
+  "type": "hierarchy",
+  "command": "detach",
+  "childId": 12345
+}
+```
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Object 12345 detached from parent"
+}
+```
+
+### 🗑️ Delete (Object Deletion)
+
+Delete an object from the scene:
+
+**Request:**
+```json
+{
+  "type": "delete",
+  "id": 12345
+}
+```
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Object 12345 deleted successfully"
+}
+```
+
+**Response (Error):**
+```json
+{
+  "type": "error",
+  "message": "Object with ID 12345 not found"
+}
+```
+
 ## 💡 Usage Examples
 
 ### Web Browser Console
@@ -261,7 +370,14 @@ ws.send(JSON.stringify({
   "command": "item",
   "group": 0,
   "category": 0,
-  "no": 1
+  "itemId": 1
+}));
+
+// Add a folder
+ws.send(JSON.stringify({
+  "type": "add",
+  "command": "folder",
+  "name": "My Objects"
 }));
 
 // Move an object
@@ -270,6 +386,20 @@ ws.send(JSON.stringify({
   "command": "transform",
   "id": 12345,
   "pos": [1.0, 2.0, 3.0]
+}));
+
+// Attach object to another object
+ws.send(JSON.stringify({
+  "type": "hierarchy",
+  "command": "attach",
+  "childId": 12345,
+  "parentId": 67890
+}));
+
+// Delete an object
+ws.send(JSON.stringify({
+  "type": "delete",
+  "id": 12345
 }));
 ```
 
