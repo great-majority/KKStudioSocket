@@ -53,7 +53,9 @@ ws://127.0.0.1:8765/ws
 ### 目次
 - [🏓 Ping-Pong（接続テスト）](#-ping-pong接続テスト)
 - [🌲 Tree（シーン構造）](#-treeシーン構造)
-- [🔄 Update（オブジェクト変形）](#-updateオブジェクト変形)
+- [🔄 Update（オブジェクト変更）](#-updateオブジェクト変更)
+  - [Transform更新](#transform更新)
+  - [アイテム色変更](#アイテム色変更)
 - [➕ Add（オブジェクト作成）](#-addオブジェクト作成)
   - [アイテム追加](#アイテム追加)
   - [ライト追加](#ライト追加)
@@ -119,7 +121,7 @@ ws://127.0.0.1:8765/ws
 
 ### 📝 Update（オブジェクト変更）
 
-#### Transform（トランスフォーム）
+#### Transform更新
 
 既存オブジェクトの位置、回転、スケールを変更：
 
@@ -145,6 +147,79 @@ ws://127.0.0.1:8765/ws
 {
   "type": "success",
   "message": "Transform updated for object ID 12345"
+}
+```
+
+#### アイテム色変更
+
+アイテムの色と透明度を変更（アイテムのみ対応）：
+
+**リクエスト（特定の色を変更）:**
+```json
+{
+  "type": "update",
+  "command": "color",
+  "id": 12345,
+  "color": [1.0, 0.0, 0.0],
+  "colorIndex": 0
+}
+```
+
+**リクエスト（アルファ値付きの色変更）:**
+```json
+{
+  "type": "update",
+  "command": "color",
+  "id": 12345,
+  "color": [0.0, 1.0, 0.0, 0.8],
+  "colorIndex": 1
+}
+```
+
+**リクエスト（全体透明度変更）:**
+```json
+{
+  "type": "update",
+  "command": "color",
+  "id": 12345,
+  "alpha": 0.5
+}
+```
+
+**リクエスト（色と透明度の同時変更）:**
+```json
+{
+  "type": "update",
+  "command": "color",
+  "id": 12345,
+  "color": [0.0, 0.0, 1.0],
+  "colorIndex": 0,
+  "alpha": 0.7
+}
+```
+
+- `id`: 変更するアイテムのID
+- `color`: RGB [r, g, b] または RGBA [r, g, b, a] 値（0.0-1.0）（オプション）
+- `colorIndex`: 色スロットインデックス（0-7）（colorを使用する場合は必須）
+  - 0-2: メインカラー1-3
+  - 3-5: パターンカラー1-3
+  - 6: 影色
+  - 7: ガラス/アルファ色
+- `alpha`: 全体透明度（0.0-1.0）（オプション）
+
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Color updated for item ID 12345"
+}
+```
+
+**レスポンス（エラー - アイテム以外）:**
+```json
+{
+  "type": "error",
+  "message": "Object with ID 12345 is not an item. Color can only be changed for items."
 }
 ```
 

@@ -260,6 +260,9 @@ namespace KKStudioSocket
         public float[] pos;
         public float[] rot;
         public float[] scale;
+        public float[] color;
+        public int colorIndex;
+        public float? alpha;
     }
 
     [Serializable]

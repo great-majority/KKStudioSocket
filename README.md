@@ -53,7 +53,9 @@ All commands and responses use JSON format.
 ### Table of Contents
 - [🏓 Ping-Pong (Connection Test)](#-ping-pong-connection-test)
 - [🌲 Tree (Scene Structure)](#-tree-scene-structure)
-- [🔄 Update (Object Transform)](#-update-object-transform)
+- [🔄 Update (Object Properties)](#-update-object-properties)
+  - [Update Transform](#update-transform)
+  - [Update Item Color](#update-item-color)
 - [➕ Add (Object Creation)](#-add-object-creation)
   - [Add Items](#add-items)
   - [Add Lights](#add-lights)
@@ -119,7 +121,7 @@ Retrieve the complete scene object hierarchy:
 
 ### 📝 Update (Modify Objects)
 
-#### Transform Objects
+#### Update Transform
 
 Change position, rotation, or scale of existing objects:
 
@@ -145,6 +147,79 @@ Change position, rotation, or scale of existing objects:
 {
   "type": "success",
   "message": "Transform updated for object ID 12345"
+}
+```
+
+#### Update Item Color
+
+Change item colors and transparency (items only):
+
+**Request (Change specific color):**
+```json
+{
+  "type": "update",
+  "command": "color",
+  "id": 12345,
+  "color": [1.0, 0.0, 0.0],
+  "colorIndex": 0
+}
+```
+
+**Request (Change color with alpha):**
+```json
+{
+  "type": "update",
+  "command": "color",
+  "id": 12345,
+  "color": [0.0, 1.0, 0.0, 0.8],
+  "colorIndex": 1
+}
+```
+
+**Request (Change overall transparency):**
+```json
+{
+  "type": "update",
+  "command": "color",
+  "id": 12345,
+  "alpha": 0.5
+}
+```
+
+**Request (Change both color and transparency):**
+```json
+{
+  "type": "update",
+  "command": "color",
+  "id": 12345,
+  "color": [0.0, 0.0, 1.0],
+  "colorIndex": 0,
+  "alpha": 0.7
+}
+```
+
+- `id`: Item ID to update
+- `color`: RGB [r, g, b] or RGBA [r, g, b, a] values (0.0-1.0) (optional)
+- `colorIndex`: Color slot index (0-7) (required when using color)
+  - 0-2: Main colors 1-3
+  - 3-5: Pattern colors 1-3
+  - 6: Shadow color
+  - 7: Glass/Alpha color
+- `alpha`: Overall transparency (0.0-1.0) (optional)
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Color updated for item ID 12345"
+}
+```
+
+**Response (Error - Not an item):**
+```json
+{
+  "type": "error",
+  "message": "Object with ID 12345 is not an item. Color can only be changed for items."
 }
 ```
 
@@ -548,6 +623,23 @@ ws.send(JSON.stringify({
   "command": "transform",
   "id": 12345,
   "pos": [1.0, 2.0, 3.0]
+}));
+
+// Change item color to red
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "color",
+  "id": 12345,
+  "color": [1.0, 0.0, 0.0],
+  "colorIndex": 0
+}));
+
+// Set item transparency to 50%
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "color",
+  "id": 12345,
+  "alpha": 0.5
 }));
 
 // Attach object to another object
