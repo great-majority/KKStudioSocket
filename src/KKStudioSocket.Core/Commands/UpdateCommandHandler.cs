@@ -27,6 +27,9 @@ namespace KKStudioSocket.Commands
                     case "color":
                         HandleColorUpdate(cmd);
                         break;
+                    case "visibility":
+                        HandleVisibilityUpdate(cmd);
+                        break;
                     default:
                         KKStudioSocketPlugin.Logger.LogWarning($"Unsupported update command: {cmd.command}");
                         SendErrorResponse($"Unsupported update command: {cmd.command}");
@@ -194,6 +197,75 @@ namespace KKStudioSocket.Commands
             {
                 KKStudioSocketPlugin.Logger.LogError($"Color update error: {ex.Message}");
                 SendErrorResponse($"Color update error: {ex.Message}");
+            }
+        }
+
+        private void HandleVisibilityUpdate(UpdateCommand cmd)
+        {
+            try
+            {
+                var oci = Studio.Studio.Instance.dicInfo.Values
+                    .FirstOrDefault(info => info.objectInfo.dicKey == cmd.id);
+
+                if (oci == null)
+                {
+                    KKStudioSocketPlugin.Logger.LogWarning($"Object with ID {cmd.id} not found");
+                    SendErrorResponse($"Object with ID {cmd.id} not found");
+                    return;
+                }
+
+                if (!cmd.visible.HasValue)
+                {
+                    KKStudioSocketPlugin.Logger.LogWarning($"Visibility value not provided for object ID {cmd.id}");
+                    SendErrorResponse($"Visibility value not provided for object ID {cmd.id}");
+                    return;
+                }
+
+                bool newVisibility = cmd.visible.Value;
+
+                // Update visibility through TreeNodeObject to ensure UI sync
+                try
+                {
+                    var studio = Studio.Studio.Instance;
+                    var targetTreeNode = studio.dicInfo.FirstOrDefault(kvp => kvp.Value == oci).Key;
+                    
+                    if (targetTreeNode != null)
+                    {
+                        // Use TreeNodeObject.SetVisible for proper UI sync
+                        targetTreeNode.SetVisible(newVisibility);
+                        
+                        KKStudioSocketPlugin.Logger.LogInfo($"Visibility updated for object ID {cmd.id}: visible={newVisibility}");
+                        SendSuccessResponse($"Visibility updated for object ID {cmd.id}");
+                    }
+                    else
+                    {
+                        // Fallback: direct visibility update without UI sync
+                        oci.OnVisible(newVisibility);
+                        
+                        KKStudioSocketPlugin.Logger.LogInfo($"Visibility updated (direct) for object ID {cmd.id}: visible={newVisibility}");
+                        SendSuccessResponse($"Visibility updated for object ID {cmd.id}");
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    KKStudioSocketPlugin.Logger.LogError($"Failed to update visibility with UI sync: {ex.Message}");
+                    
+                    // Fallback: direct visibility update
+                    try
+                    {
+                        oci.OnVisible(newVisibility);
+                        SendSuccessResponse($"Visibility updated for object ID {cmd.id}");
+                    }
+                    catch
+                    {
+                        throw; // Re-throw the original exception
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                KKStudioSocketPlugin.Logger.LogError($"Visibility update error: {ex.Message}");
+                SendErrorResponse($"Visibility update error: {ex.Message}");
             }
         }
         

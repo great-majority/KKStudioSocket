@@ -263,6 +263,7 @@ namespace KKStudioSocket
         public float[] color;
         public int colorIndex;
         public float? alpha;
+        public bool? visible;
     }
 
     [Serializable]

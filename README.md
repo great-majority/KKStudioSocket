@@ -56,6 +56,7 @@ All commands and responses use JSON format.
 - [🔄 Update (Object Properties)](#-update-object-properties)
   - [Update Transform](#update-transform)
   - [Update Item Color](#update-item-color)
+  - [Update Visibility](#update-visibility)
 - [➕ Add (Object Creation)](#-add-object-creation)
   - [Add Items](#add-items)
   - [Add Lights](#add-lights)
@@ -220,6 +221,39 @@ Change item colors and transparency (items only):
 {
   "type": "error",
   "message": "Object with ID 12345 is not an item. Color can only be changed for items."
+}
+```
+
+**Response (Error):**
+```json
+{
+  "type": "error",
+  "message": "Object with ID 12345 not found"
+}
+```
+
+#### Update Visibility
+
+Show or hide objects in the scene:
+
+**Request:**
+```json
+{
+  "type": "update",
+  "command": "visibility",
+  "id": 12345,
+  "visible": true
+}
+```
+
+- `id`: Object ID to update
+- `visible`: Visibility state (true=show, false=hide)
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Visibility updated for object ID 12345"
 }
 ```
 
@@ -640,6 +674,22 @@ ws.send(JSON.stringify({
   "command": "color",
   "id": 12345,
   "alpha": 0.5
+}));
+
+// Hide an object
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "visibility",
+  "id": 12345,
+  "visible": false
+}));
+
+// Show an object
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "visibility",
+  "id": 12345,
+  "visible": true
 }));
 
 // Attach object to another object
