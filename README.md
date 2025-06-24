@@ -25,11 +25,34 @@ KKStudioSocket allows you to control Koikatsu Studio objects remotely via WebSoc
 ## 🚀 Installation
 
 1. **Download** the latest release from [Releases](https://github.com/great-majority/KKStudioSocket/releases)
-2. **Extract** the appropriate DLL file:
-   - For Koikatsu: `KK_KKStudioSocket.dll`
-   - For Koikatsu Sunshine: `KKS_KKStudioSocket.dll`
-3. **Copy** the DLL to your game's `BepInEx/plugins/` folder
+   - Choose the appropriate package for your game:
+     - `KK-KKStudioSocket-[version].zip` for Koikatsu
+     - `KKS-KKStudioSocket-[version].zip` for Koikatsu Sunshine
+
+2. **Extract** the zip file to get the following files:
+   - **Main plugin**: `KK_KKStudioSocket.dll` or `KKS_KKStudioSocket.dll`
+   - **External dependencies**:
+     - `websocket-sharp.dll` - WebSocket communication library
+     - `Newtonsoft.Json.dll` - JSON serialization library
+   - **Documentation**: `README.md`, `LICENSE`
+
+3. **Install** all files to your game's `BepInEx/plugins/` folder:
+   ```
+   [Game Directory]/
+   └── BepInEx/
+       └── plugins/
+           ├── KK_KKStudioSocket.dll (or KKS_KKStudioSocket.dll)
+           ├── websocket-sharp.dll
+           └── Newtonsoft.Json.dll
+   ```
+
 4. **Start** the game and enter Studio mode
+
+### ⚠️ Important Notes
+
+- **All files required**: The plugin needs both external libraries to function properly
+- **Version compatibility**: Use the WebSocketSharp and Newtonsoft.Json versions provided in the release package
+- **BepInEx plugins folder**: Make sure all DLL files are placed directly in the `plugins` folder, not in subfolders
 
 ## ⚙️ Configuration
 

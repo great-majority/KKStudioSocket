@@ -25,11 +25,34 @@ KKStudioSocketを使用すると、WebSocket接続を通じてコイカツのス
 ## 🚀 インストール方法
 
 1. **ダウンロード**: [Releases](https://github.com/great-majority/KKStudioSocket/releases)から最新版をダウンロード
-2. **ファイル選択**: 適切なDLLファイルを展開
-   - コイカツ用: `KK_KKStudioSocket.dll`
-   - コイカツサンシャイン用: `KKS_KKStudioSocket.dll`
-3. **配置**: DLLファイルをゲームの`BepInEx/plugins/`フォルダにコピー
+   - お使いのゲームに適したパッケージを選択：
+     - `KKStudioSocket-KK-[version].zip` - コイカツ用
+     - `KKStudioSocket-KKS-[version].zip` - コイカツサンシャイン用
+
+2. **ファイル展開**: zipファイルを展開すると以下のファイルが含まれています：
+   - **メインプラグイン**: `KK_KKStudioSocket.dll` または `KKS_KKStudioSocket.dll`
+   - **外部依存ライブラリ**:
+     - `websocket-sharp.dll` - WebSocket通信ライブラリ
+     - `Newtonsoft.Json.dll` - JSON シリアライゼーション ライブラリ
+   - **ドキュメント**: `README.md`, `LICENSE`
+
+3. **インストール**: すべてのファイルをゲームの`BepInEx/plugins/`フォルダに配置：
+   ```
+   [ゲームディレクトリ]/
+   └── BepInEx/
+       └── plugins/
+           ├── KK_KKStudioSocket.dll (または KKS_KKStudioSocket.dll)
+           ├── websocket-sharp.dll
+           └── Newtonsoft.Json.dll
+   ```
+
 4. **起動**: ゲームを起動してスタジオモードに入る
+
+### ⚠️ 重要な注意事項
+
+- **全ファイル必須**: プラグインが正常に動作するには、すべての外部ライブラリが必要です
+- **バージョン互換性**: リリースパッケージに含まれているバージョンのWebSocketSharpとNewtonsoft.Jsonを使用してください
+- **配置場所**: すべてのDLLファイルは`plugins`フォルダ直下に配置し、サブフォルダには入れないでください
 
 ## ⚙️ 設定
 

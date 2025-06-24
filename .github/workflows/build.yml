@@ -8,6 +8,10 @@ on:
   release:
     types: [ published ]
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   build:
     runs-on: windows-latest
@@ -59,6 +63,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    # Download artifacts from the build job (same workflow)
+    - name: Download KK artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: KK_KKStudioSocket-${{ github.sha }}
+        path: bin/
+        
+    - name: Download KKS artifact  
+      uses: actions/download-artifact@v4
+      with:
+        name: KKS_KKStudioSocket-${{ github.sha }}
+        path: bin/
+        
+    # Setup environment only for dependency collection
     - name: Setup .NET Framework
       uses: microsoft/setup-msbuild@v1.3
       
@@ -67,81 +85,72 @@ jobs:
       with:
         nuget-version: 'latest'
     
-    - name: Restore and build Release
-      run: |
-        powershell.exe -ExecutionPolicy Bypass -File "build.ps1" restore
-        powershell.exe -ExecutionPolicy Bypass -File "build.ps1" build Release
+    - name: Restore packages for dependencies
+      run: powershell.exe -ExecutionPolicy Bypass -File "build.ps1" restore
         
-    - name: Create release package
+    - name: Create KK release package
       run: |
-        mkdir release-package
-        copy bin\KK_KKStudioSocket.dll release-package\
-        copy bin\KKS_KKStudioSocket.dll release-package\
-        copy README.md release-package\
-        copy LICENSE release-package\
-        echo "Collecting dependency DLLs..."
-        mkdir release-package\dependencies
+        # Create KK package
+        mkdir kk-package
+        copy bin\KK_KKStudioSocket.dll kk-package\
+        copy README.md kk-package\
+        copy README.ja.md kk-package\
+        copy LICENSE kk-package\
         
-        # Find and copy WebSocketSharp DLLs
-        $wsSharpDlls = Get-ChildItem -Path "src" -Recurse -Name "websocket-sharp.dll" 2>$null
-        if ($wsSharpDlls) {
-          foreach ($dll in $wsSharpDlls) {
-            $sourcePath = Get-ChildItem -Path "src" -Recurse -Name $dll | Select-Object -First 1
-            if ($sourcePath) {
-              copy $sourcePath.FullName release-package\
-              echo "Copied WebSocketSharp: $($sourcePath.FullName)"
-            }
-          }
+        # Get dependency DLLs from NuGet cache
+        $nugetCache = "$env:USERPROFILE\.nuget\packages"
+        
+        # Copy WebSocketSharp DLL
+        $wsSharpPath = "$nugetCache\websocketsharp\1.0.3-rc11\lib\websocket-sharp.dll"
+        if (Test-Path $wsSharpPath) {
+          copy $wsSharpPath kk-package\
+          echo "Copied WebSocketSharp for KK: $wsSharpPath"
         }
         
-        # Find and copy Newtonsoft.Json DLLs  
-        $jsonDlls = Get-ChildItem -Path "src" -Recurse -Name "Newtonsoft.Json.dll" 2>$null
-        if ($jsonDlls) {
-          foreach ($dll in $jsonDlls) {
-            $sourcePath = Get-ChildItem -Path "src" -Recurse -Name $dll | Select-Object -First 1
-            if ($sourcePath) {
-              copy $sourcePath.FullName release-package\
-              echo "Copied Newtonsoft.Json: $($sourcePath.FullName)"
-            }
-          }
+        # Copy Newtonsoft.Json DLL  
+        $jsonPath = "$nugetCache\json.net.unity3d\9.0.1\lib\net35\Newtonsoft.Json.dll"
+        if (Test-Path $jsonPath) {
+          copy $jsonPath kk-package\
+          echo "Copied Newtonsoft.Json for KK: $jsonPath"
         }
         
-    - name: Archive release package
+    - name: Create KKS release package
       run: |
-        powershell Compress-Archive -Path release-package\* -DestinationPath KKStudioSocket-${{ github.event.release.tag_name }}.zip
+        # Create KKS package
+        mkdir kks-package
+        copy bin\KKS_KKStudioSocket.dll kks-package\
+        copy README.md kks-package\
+        copy README.ja.md kks-package\
+        copy LICENSE kks-package\
+        
+        # Get dependency DLLs from NuGet cache
+        $nugetCache = "$env:USERPROFILE\.nuget\packages"
+        
+        # Copy WebSocketSharp DLL
+        $wsSharpPath = "$nugetCache\websocketsharp\1.0.3-rc11\lib\websocket-sharp.dll"
+        if (Test-Path $wsSharpPath) {
+          copy $wsSharpPath kks-package\
+          echo "Copied WebSocketSharp for KKS: $wsSharpPath"
+        }
+        
+        # Copy Newtonsoft.Json DLL  
+        $jsonPath = "$nugetCache\json.net.unity3d\9.0.1\lib\net35\Newtonsoft.Json.dll"
+        if (Test-Path $jsonPath) {
+          copy $jsonPath kks-package\
+          echo "Copied Newtonsoft.Json for KKS: $jsonPath"
+        }
+        
+    - name: Archive release packages
+      run: |
+        # Create separate zip files
+        powershell Compress-Archive -Path kk-package\* -DestinationPath KK-KKStudioSocket-${{ github.event.release.tag_name }}.zip
+        powershell Compress-Archive -Path kks-package\* -DestinationPath KKS-KKStudioSocket-${{ github.event.release.tag_name }}.zip
         
     - name: Upload release assets
-      uses: actions/upload-release-asset@v1
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          KK-KKStudioSocket-${{ github.event.release.tag_name }}.zip
+          KKS-KKStudioSocket-${{ github.event.release.tag_name }}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: KKStudioSocket-${{ github.event.release.tag_name }}.zip
-        asset_name: KKStudioSocket-${{ github.event.release.tag_name }}.zip
-        asset_content_type: application/zip
-
-  lint:
-    runs-on: windows-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET Framework
-      uses: microsoft/setup-msbuild@v1.3
-      
-    - name: Setup NuGet
-      uses: nuget/setup-nuget@v1
-      with:
-        nuget-version: 'latest'
-    
-    - name: Restore packages for analysis
-      run: powershell.exe -ExecutionPolicy Bypass -File "build.ps1" restore
-      
-    - name: Run build analysis
-      run: powershell.exe -ExecutionPolicy Bypass -File "build.ps1" build Release
-      continue-on-error: true
-      
-    - name: Check build warnings
-      run: |
-        echo "Build completed. Check for any warnings in the build output above."
