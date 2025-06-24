@@ -84,7 +84,7 @@ namespace KKStudioSocket.Commands
 
                 if (updated)
                 {
-                    KKStudioSocketPlugin.Logger.LogInfo($"Transform updated for object ID {cmd.id}: pos={changeAmount.pos}, rot={changeAmount.rot}, scale={changeAmount.scale}");
+                    KKStudioSocketPlugin.Logger.LogDebug($"Transform updated for object ID {cmd.id}: pos={changeAmount.pos}, rot={changeAmount.rot}, scale={changeAmount.scale}");
                     SendSuccessResponse($"Transform updated for object ID {cmd.id}");
                 }
                 else
@@ -143,7 +143,7 @@ namespace KKStudioSocket.Commands
                     ociItem.SetColor(newColor, cmd.colorIndex);
                     updated = true;
 
-                    KKStudioSocketPlugin.Logger.LogInfo($"Color updated for item ID {cmd.id}: colorIndex={cmd.colorIndex}, color={newColor}");
+                    KKStudioSocketPlugin.Logger.LogDebug($"Color updated for item ID {cmd.id}: colorIndex={cmd.colorIndex}, color={newColor}");
                 }
 
                 // Update alpha if provided (for overall transparency)
@@ -159,7 +159,7 @@ namespace KKStudioSocket.Commands
                     ociItem.SetAlpha(alphaValue);
                     updated = true;
 
-                    KKStudioSocketPlugin.Logger.LogInfo($"Alpha updated for item ID {cmd.id}: alpha={alphaValue}");
+                    KKStudioSocketPlugin.Logger.LogDebug($"Alpha updated for item ID {cmd.id}: alpha={alphaValue}");
                 }
 
                 if (updated)
@@ -237,7 +237,7 @@ namespace KKStudioSocket.Commands
                         // Use TreeNodeObject.SetVisible for proper UI sync
                         targetTreeNode.SetVisible(newVisibility);
                         
-                        KKStudioSocketPlugin.Logger.LogInfo($"Visibility updated for object ID {cmd.id}: visible={newVisibility}");
+                        KKStudioSocketPlugin.Logger.LogDebug($"Visibility updated for object ID {cmd.id}: visible={newVisibility}");
                         SendSuccessResponse($"Visibility updated for object ID {cmd.id}");
                     }
                     else
@@ -245,7 +245,7 @@ namespace KKStudioSocket.Commands
                         // Fallback: direct visibility update without UI sync
                         oci.OnVisible(newVisibility);
                         
-                        KKStudioSocketPlugin.Logger.LogInfo($"Visibility updated (direct) for object ID {cmd.id}: visible={newVisibility}");
+                        KKStudioSocketPlugin.Logger.LogDebug($"Visibility updated (direct) for object ID {cmd.id}: visible={newVisibility}");
                         SendSuccessResponse($"Visibility updated for object ID {cmd.id}");
                     }
                 }
@@ -304,7 +304,7 @@ namespace KKStudioSocket.Commands
                     Color newColor = new Color(cmd.color[0], cmd.color[1], cmd.color[2], 1.0f);
                     ociLight.SetColor(newColor);
                     updated = true;
-                    KKStudioSocketPlugin.Logger.LogInfo($"Light color updated for ID {cmd.id}: color={newColor}");
+                    KKStudioSocketPlugin.Logger.LogDebug($"Light color updated for ID {cmd.id}: color={newColor}");
                 }
 
                 // Update intensity if provided
@@ -314,7 +314,7 @@ namespace KKStudioSocket.Commands
                     if (ociLight.SetIntensity(clampedIntensity))
                     {
                         updated = true;
-                        KKStudioSocketPlugin.Logger.LogInfo($"Light intensity updated for ID {cmd.id}: intensity={clampedIntensity}");
+                        KKStudioSocketPlugin.Logger.LogDebug($"Light intensity updated for ID {cmd.id}: intensity={clampedIntensity}");
                     }
                 }
 
@@ -326,7 +326,7 @@ namespace KKStudioSocket.Commands
                     if (ociLight.SetRange(clampedRange))
                     {
                         updated = true;
-                        KKStudioSocketPlugin.Logger.LogInfo($"Light range updated for ID {cmd.id}: range={clampedRange}");
+                        KKStudioSocketPlugin.Logger.LogDebug($"Light range updated for ID {cmd.id}: range={clampedRange}");
                     }
                 }
 
@@ -339,7 +339,7 @@ namespace KKStudioSocket.Commands
                         if (ociLight.SetSpotAngle(clampedAngle))
                         {
                             updated = true;
-                            KKStudioSocketPlugin.Logger.LogInfo($"Light spot angle updated for ID {cmd.id}: spotAngle={clampedAngle}");
+                            KKStudioSocketPlugin.Logger.LogDebug($"Light spot angle updated for ID {cmd.id}: spotAngle={clampedAngle}");
                         }
                     }
                     else
@@ -356,13 +356,13 @@ namespace KKStudioSocket.Commands
                     if (ociLight.SetEnable(enableValue, true)) // _force = true
                     {
                         updated = true;
-                        KKStudioSocketPlugin.Logger.LogInfo($"Light enable state updated for ID {cmd.id}: enabled={enableValue}");
+                        KKStudioSocketPlugin.Logger.LogDebug($"Light enable state updated for ID {cmd.id}: enabled={enableValue}");
                     }
                     else
                     {
                         // Even if SetEnable returns false, consider it updated for UI sync
                         updated = true;
-                        KKStudioSocketPlugin.Logger.LogInfo($"Light enable state forced for ID {cmd.id}: enabled={enableValue}");
+                        KKStudioSocketPlugin.Logger.LogDebug($"Light enable state forced for ID {cmd.id}: enabled={enableValue}");
                     }
                 }
 

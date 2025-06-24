@@ -35,7 +35,7 @@ namespace KKStudioSocket.Commands
                 // Delete object through TreeNodeCtrl for proper UI update
                 Studio.Studio.Instance.m_TreeNodeCtrl.DeleteNode(oci.treeNodeObject);
 
-                KKStudioSocketPlugin.Logger.LogInfo($"Object {cmd.id} deleted successfully");
+                KKStudioSocketPlugin.Logger.LogDebug($"Object {cmd.id} deleted successfully");
                 SendSuccessResponse($"Object {cmd.id} deleted successfully");
             }
             catch (Exception ex)

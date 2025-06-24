@@ -46,7 +46,7 @@ namespace KKStudioSocket
                 if (this._studio == null && Studio.Studio.instance != null)
                 {
                     this._studio = Studio.Studio.instance;
-                    Logger.LogError("Studio instance is initialized.");
+                    Logger.LogInfo("Studio instance seems to be initialized. Starting WebSocket Server.");
 
                     _serverPort = Config.Bind("Server", "Port", DefaultPort, "WebSocket server port number");
                     _enableServer = Config.Bind("Server", "Enable", true, "Enable WebSocket server");
@@ -111,7 +111,7 @@ namespace KKStudioSocket
             try
             {
                 KKStudioSocketPlugin.Logger.LogDebug($"Received WebSocket message: {e.Data}");
-                
+
                 // Determine command type
                 var baseCommand = JsonConvert.DeserializeObject<BaseCommand>(e.Data);
                 if (baseCommand?.type == null)
@@ -119,7 +119,7 @@ namespace KKStudioSocket
                     KKStudioSocketPlugin.Logger.LogWarning($"Command type not specified: {e.Data}");
                     return;
                 }
-                
+
                 KKStudioSocketPlugin.Logger.LogDebug($"Processing command type: {baseCommand.type}");
 
                 switch (baseCommand.type.ToLower())
@@ -151,7 +151,8 @@ namespace KKStudioSocket
                         var updateCmd = JsonConvert.DeserializeObject<UpdateCommand>(e.Data);
                         if (updateCmd != null)
                         {
-                            EnqueueAction(() => {
+                            EnqueueAction(() =>
+                            {
                                 var updateHandler = new UpdateCommandHandler(Send);
                                 updateHandler.Handle(updateCmd);
                             });
@@ -162,7 +163,8 @@ namespace KKStudioSocket
                         var addCmd = JsonConvert.DeserializeObject<AddCommand>(e.Data);
                         if (addCmd != null)
                         {
-                            EnqueueAction(() => {
+                            EnqueueAction(() =>
+                            {
                                 var addHandler = new AddCommandHandler(Send);
                                 addHandler.Handle(addCmd);
                             });
@@ -173,7 +175,8 @@ namespace KKStudioSocket
                         var hierarchyCmd = JsonConvert.DeserializeObject<HierarchyCommand>(e.Data);
                         if (hierarchyCmd != null)
                         {
-                            EnqueueAction(() => {
+                            EnqueueAction(() =>
+                            {
                                 var hierarchyHandler = new HierarchyCommandHandler(Send);
                                 hierarchyHandler.Handle(hierarchyCmd);
                             });
@@ -184,7 +187,8 @@ namespace KKStudioSocket
                         var deleteCmd = JsonConvert.DeserializeObject<DeleteCommand>(e.Data);
                         if (deleteCmd != null)
                         {
-                            EnqueueAction(() => {
+                            EnqueueAction(() =>
+                            {
                                 var deleteHandler = new DeleteCommandHandler(Send);
                                 deleteHandler.Handle(deleteCmd);
                             });
@@ -195,7 +199,8 @@ namespace KKStudioSocket
                         var cameraCmd = JsonConvert.DeserializeObject<CameraCommand>(e.Data);
                         if (cameraCmd != null)
                         {
-                            EnqueueAction(() => {
+                            EnqueueAction(() =>
+                            {
                                 var cameraHandler = new CameraCommandHandler(Send);
                                 cameraHandler.Handle(cameraCmd);
                             });

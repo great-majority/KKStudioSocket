@@ -20,7 +20,7 @@ namespace KKStudioSocket.Commands
                 };
 
                 var jsonResponse = JsonConvert.SerializeObject(pongResponse);
-                KKStudioSocketPlugin.Logger.LogInfo($"Ping received, Pong response: {jsonResponse}");
+                KKStudioSocketPlugin.Logger.LogDebug($"Ping received, Pong response: {jsonResponse}");
                 
                 Send(jsonResponse);
             }

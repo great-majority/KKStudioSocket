@@ -71,7 +71,7 @@ namespace KKStudioSocket.Commands
                     cameraCtrl.fieldOfView = cmd.fov;
                 }
 
-                KKStudioSocketPlugin.Logger.LogInfo($"Camera view updated: pos={cameraCtrl.targetPos}, rot={cameraCtrl.cameraAngle}, fov={cameraCtrl.fieldOfView}");
+                KKStudioSocketPlugin.Logger.LogDebug($"Camera view updated: pos={cameraCtrl.targetPos}, rot={cameraCtrl.cameraAngle}, fov={cameraCtrl.fieldOfView}");
                 SendSuccessResponse($"Camera view updated successfully");
             }
             catch (Exception ex)
@@ -106,7 +106,7 @@ namespace KKStudioSocket.Commands
                 // Switch to this camera (this updates UI automatically)
                 Studio.Studio.Instance.ChangeCamera(oci);
 
-                KKStudioSocketPlugin.Logger.LogInfo($"Switched to camera {cmd.cameraId}");
+                KKStudioSocketPlugin.Logger.LogDebug($"Switched to camera {cmd.cameraId}");
                 SendSuccessResponse($"Switched to camera {cmd.cameraId}");
             }
             catch (Exception ex)
@@ -144,7 +144,7 @@ namespace KKStudioSocket.Commands
                 string modeInfo = activeCamera != null 
                     ? $"Camera Object Mode (ID: {activeCamera.objectInfo.dicKey})" 
                     : "Free Camera Mode";
-                KKStudioSocketPlugin.Logger.LogInfo($"Camera view retrieved: {modeInfo}, pos={cameraCtrl.targetPos}, rot={cameraCtrl.cameraAngle}, fov={cameraCtrl.fieldOfView}");
+                KKStudioSocketPlugin.Logger.LogDebug($"Camera view retrieved: {modeInfo}, pos={cameraCtrl.targetPos}, rot={cameraCtrl.cameraAngle}, fov={cameraCtrl.fieldOfView}");
             }
             catch (Exception ex)
             {
@@ -163,7 +163,7 @@ namespace KKStudioSocket.Commands
                 // This will handle all UI updates automatically
                 studio.ChangeCamera(null);
 
-                KKStudioSocketPlugin.Logger.LogInfo("Switched to free camera mode");
+                KKStudioSocketPlugin.Logger.LogDebug("Switched to free camera mode");
                 SendSuccessResponse("Switched to free camera mode");
             }
             catch (Exception ex)

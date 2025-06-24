@@ -63,7 +63,7 @@ namespace KKStudioSocket.Commands
                 var newItem = Studio.AddObjectItem.Add(cmd.group, cmd.category, cmd.itemId);
                 int objectId = newItem.objectInfo.dicKey;
 
-                KKStudioSocketPlugin.Logger.LogInfo($"Item added successfully: group={cmd.group}, category={cmd.category}, itemId={cmd.itemId}, objectId={objectId}");
+                KKStudioSocketPlugin.Logger.LogDebug($"Item added successfully: group={cmd.group}, category={cmd.category}, itemId={cmd.itemId}, objectId={objectId}");
                 SendSuccessResponseWithId($"Item added successfully: group={cmd.group}, category={cmd.category}, itemId={cmd.itemId}", objectId);
             }
             catch (Exception ex)
@@ -97,7 +97,7 @@ namespace KKStudioSocket.Commands
                 var newLight = Studio.AddObjectLight.Add(cmd.lightId);
                 int objectId = newLight.objectInfo.dicKey;
 
-                KKStudioSocketPlugin.Logger.LogInfo($"Light added successfully: lightId={cmd.lightId}, objectId={objectId}");
+                KKStudioSocketPlugin.Logger.LogDebug($"Light added successfully: lightId={cmd.lightId}, objectId={objectId}");
                 SendSuccessResponseWithId($"Light added successfully: lightId={cmd.lightId}", objectId);
             }
             catch (Exception ex)
@@ -140,13 +140,13 @@ namespace KKStudioSocket.Commands
                     case "female":
                         var newFemale = Studio.AddObjectFemale.Add(cmd.path);
                         int femaleId = newFemale.objectInfo.dicKey;
-                        KKStudioSocketPlugin.Logger.LogInfo($"Female character added successfully: {cmd.path}, objectId={femaleId}");
+                        KKStudioSocketPlugin.Logger.LogDebug($"Female character added successfully: {cmd.path}, objectId={femaleId}");
                         SendSuccessResponseWithId($"Female character added successfully: {cmd.path}", femaleId);
                         break;
                     case "male":
                         var newMale = Studio.AddObjectMale.Add(cmd.path);
                         int maleId = newMale.objectInfo.dicKey;
-                        KKStudioSocketPlugin.Logger.LogInfo($"Male character added successfully: {cmd.path}, objectId={maleId}");
+                        KKStudioSocketPlugin.Logger.LogDebug($"Male character added successfully: {cmd.path}, objectId={maleId}");
                         SendSuccessResponseWithId($"Male character added successfully: {cmd.path}", maleId);
                         break;
                     default:
@@ -174,12 +174,12 @@ namespace KKStudioSocket.Commands
                 if (!string.IsNullOrEmpty(cmd.name))
                 {
                     newFolder.name = cmd.name;
-                    KKStudioSocketPlugin.Logger.LogInfo($"Folder added and renamed to: {cmd.name}, objectId={objectId}");
+                    KKStudioSocketPlugin.Logger.LogDebug($"Folder added and renamed to: {cmd.name}, objectId={objectId}");
                     SendSuccessResponseWithId($"Folder added successfully with name: {cmd.name}", objectId);
                 }
                 else
                 {
-                    KKStudioSocketPlugin.Logger.LogInfo($"Folder added successfully, objectId={objectId}");
+                    KKStudioSocketPlugin.Logger.LogDebug($"Folder added successfully, objectId={objectId}");
                     SendSuccessResponseWithId("Folder added successfully", objectId);
                 }
             }
@@ -214,12 +214,12 @@ namespace KKStudioSocket.Commands
                     newCamera.name = cmd.name;
                     // Update UI again after name change
                     studio.cameraSelector.Init();
-                    KKStudioSocketPlugin.Logger.LogInfo($"Camera added and renamed to: {cmd.name}, objectId={objectId}");
+                    KKStudioSocketPlugin.Logger.LogDebug($"Camera added and renamed to: {cmd.name}, objectId={objectId}");
                     SendSuccessResponseWithId($"Camera added successfully with name: {cmd.name}", objectId);
                 }
                 else
                 {
-                    KKStudioSocketPlugin.Logger.LogInfo($"Camera added successfully, objectId={objectId}");
+                    KKStudioSocketPlugin.Logger.LogDebug($"Camera added successfully, objectId={objectId}");
                     SendSuccessResponseWithId("Camera added successfully", objectId);
                 }
             }

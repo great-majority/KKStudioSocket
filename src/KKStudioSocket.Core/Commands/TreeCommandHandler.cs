@@ -29,7 +29,7 @@ namespace KKStudioSocket.Commands
                 }
 
                 var jsonResponse = JsonConvert.SerializeObject(roots);
-                KKStudioSocketPlugin.Logger.LogInfo($"Tree command received, number of root objects: {roots.Count}");
+                KKStudioSocketPlugin.Logger.LogDebug($"Tree command received, number of root objects: {roots.Count}");
                 
                 Send(jsonResponse);
             }

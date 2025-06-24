@@ -99,7 +99,7 @@ namespace KKStudioSocket.Commands
 
                 Studio.Studio.Instance.m_TreeNodeCtrl.SetParent(childOci.treeNodeObject, parentOci.treeNodeObject);
 
-                KKStudioSocketPlugin.Logger.LogInfo($"Object {cmd.childId} attached to parent {cmd.parentId}");
+                KKStudioSocketPlugin.Logger.LogDebug($"Object {cmd.childId} attached to parent {cmd.parentId}");
                 SendSuccessResponse($"Object {cmd.childId} attached to parent {cmd.parentId}");
             }
             catch (Exception ex)
@@ -157,7 +157,7 @@ namespace KKStudioSocket.Commands
                         }
                     }
 
-                    KKStudioSocketPlugin.Logger.LogInfo($"Object {cmd.childId} detached from parent");
+                    KKStudioSocketPlugin.Logger.LogDebug($"Object {cmd.childId} detached from parent");
                     SendSuccessResponse($"Object {cmd.childId} detached from parent");
                 }
                 else
