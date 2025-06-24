@@ -57,6 +57,7 @@ All commands and responses use JSON format.
   - [Update Transform](#update-transform)
   - [Update Item Color](#update-item-color)
   - [Update Visibility](#update-visibility)
+  - [Update Light Properties](#update-light-properties)
 - [➕ Add (Object Creation)](#-add-object-creation)
   - [Add Items](#add-items)
   - [Add Lights](#add-lights)
@@ -254,6 +255,104 @@ Show or hide objects in the scene:
 {
   "type": "success",
   "message": "Visibility updated for object ID 12345"
+}
+```
+
+**Response (Error):**
+```json
+{
+  "type": "error",
+  "message": "Object with ID 12345 not found"
+}
+```
+
+#### Update Light Properties
+
+Control light color, intensity, range, spot angle, and enable state:
+
+**Request (Change light color):**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "color": [1.0, 0.8, 0.6]
+}
+```
+
+**Request (Change light intensity):**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "intensity": 1.5
+}
+```
+
+**Request (Change light range):**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "range": 25.0
+}
+```
+
+**Request (Change spot angle - spot lights only):**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "spotAngle": 45.0
+}
+```
+
+**Request (Enable/disable light):**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "enable": false
+}
+```
+
+**Request (Multiple properties at once):**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "color": [0.9, 0.9, 1.0],
+  "intensity": 1.2,
+  "range": 30.0,
+  "enable": true
+}
+```
+
+- `id`: Light object ID to update
+- `color`: RGB light color values (0.0-1.0) (optional)
+- `intensity`: Light intensity (0.1-2.0) (optional)
+- `range`: Light range - Point lights: 0.1-100, Spot lights: 0.5-100 (optional)
+- `spotAngle`: Spot light angle in degrees (1-179) - only for spot lights (optional)
+- `enable`: Light enabled state (true/false) (optional)
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Light properties updated for ID 12345"
+}
+```
+
+**Response (Error - Not a light):**
+```json
+{
+  "type": "error",
+  "message": "Object with ID 12345 is not a light. Light commands can only be used on light objects."
 }
 ```
 
@@ -690,6 +789,31 @@ ws.send(JSON.stringify({
   "command": "visibility",
   "id": 12345,
   "visible": true
+}));
+
+// Change light color to warm white
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "color": [1.0, 0.9, 0.8]
+}));
+
+// Set light intensity and range
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "intensity": 1.5,
+  "range": 30.0
+}));
+
+// Disable a light
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "enable": false
 }));
 
 // Attach object to another object

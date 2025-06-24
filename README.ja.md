@@ -57,6 +57,7 @@ ws://127.0.0.1:8765/ws
   - [Transform更新](#transform更新)
   - [アイテム色変更](#アイテム色変更)
   - [表示/非表示切り替え](#表示非表示切り替え)
+  - [ライトプロパティ変更](#ライトプロパティ変更)
 - [➕ Add（オブジェクト作成）](#-addオブジェクト作成)
   - [アイテム追加](#アイテム追加)
   - [ライト追加](#ライト追加)
@@ -254,6 +255,104 @@ ws://127.0.0.1:8765/ws
 {
   "type": "success",
   "message": "Visibility updated for object ID 12345"
+}
+```
+
+**レスポンス（エラー）:**
+```json
+{
+  "type": "error",
+  "message": "Object with ID 12345 not found"
+}
+```
+
+#### ライトプロパティ変更
+
+ライトの色、強度、範囲、スポット角度、有効/無効を制御：
+
+**リクエスト（ライト色変更）:**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "color": [1.0, 0.8, 0.6]
+}
+```
+
+**リクエスト（ライト強度変更）:**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "intensity": 1.5
+}
+```
+
+**リクエスト（ライト範囲変更）:**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "range": 25.0
+}
+```
+
+**リクエスト（スポット角度変更 - スポットライトのみ）:**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "spotAngle": 45.0
+}
+```
+
+**リクエスト（ライト有効/無効）:**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "enable": false
+}
+```
+
+**リクエスト（複数プロパティ同時変更）:**
+```json
+{
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "color": [0.9, 0.9, 1.0],
+  "intensity": 1.2,
+  "range": 30.0,
+  "enable": true
+}
+```
+
+- `id`: 変更するライトオブジェクトのID
+- `color`: RGBライト色値（0.0-1.0）（オプション）
+- `intensity`: ライト強度（0.1-2.0）（オプション）
+- `range`: ライト範囲 - 点光源: 0.1-100、スポットライト: 0.5-100（オプション）
+- `spotAngle`: スポットライト角度（1-179度）- スポットライトのみ（オプション）
+- `enable`: ライト有効状態（true/false）（オプション）
+
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Light properties updated for ID 12345"
+}
+```
+
+**レスポンス（エラー - ライト以外）:**
+```json
+{
+  "type": "error",
+  "message": "Object with ID 12345 is not a light. Light commands can only be used on light objects."
 }
 ```
 
@@ -673,6 +772,31 @@ ws.send(JSON.stringify({
   "command": "visibility",
   "id": 12345,
   "visible": true
+}));
+
+// ライト色を暖色系に変更
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "color": [1.0, 0.9, 0.8]
+}));
+
+// ライト強度と範囲を設定
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "intensity": 1.5,
+  "range": 30.0
+}));
+
+// ライトを無効にする
+ws.send(JSON.stringify({
+  "type": "update",
+  "command": "light",
+  "id": 12345,
+  "enable": false
 }));
 
 // オブジェクトを他のオブジェクトにアタッチ

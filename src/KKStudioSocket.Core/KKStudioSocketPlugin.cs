@@ -202,6 +202,7 @@ namespace KKStudioSocket
                         }
                         break;
 
+
                     default:
                         KKStudioSocketPlugin.Logger.LogWarning($"Unsupported command type: {baseCommand.type}");
                         break;
@@ -264,6 +265,10 @@ namespace KKStudioSocket
         public int colorIndex;
         public float? alpha;
         public bool? visible;
+        public float? intensity; // Light intensity (0.1-2.0)
+        public float? range; // Light range (Point: 0.1-100, Spot: 0.5-100)
+        public float? spotAngle; // Spot angle (1-179 degrees)
+        public bool? enable; // Light enabled/disabled
     }
 
     [Serializable]
@@ -303,4 +308,5 @@ namespace KKStudioSocket
         public float fov;
         public int cameraId; // For switching to specific camera object
     }
+
 }

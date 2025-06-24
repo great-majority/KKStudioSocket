@@ -30,6 +30,9 @@ namespace KKStudioSocket.Commands
                     case "visibility":
                         HandleVisibilityUpdate(cmd);
                         break;
+                    case "light":
+                        HandleLightUpdate(cmd);
+                        break;
                     default:
                         KKStudioSocketPlugin.Logger.LogWarning($"Unsupported update command: {cmd.command}");
                         SendErrorResponse($"Unsupported update command: {cmd.command}");
@@ -266,6 +269,166 @@ namespace KKStudioSocket.Commands
             {
                 KKStudioSocketPlugin.Logger.LogError($"Visibility update error: {ex.Message}");
                 SendErrorResponse($"Visibility update error: {ex.Message}");
+            }
+        }
+
+        private void HandleLightUpdate(UpdateCommand cmd)
+        {
+            try
+            {
+                
+                var oci = Studio.Studio.Instance.dicInfo.Values
+                    .FirstOrDefault(info => info.objectInfo.dicKey == cmd.id);
+
+                if (oci == null)
+                {
+                    KKStudioSocketPlugin.Logger.LogWarning($"Object with ID {cmd.id} not found");
+                    SendErrorResponse($"Object with ID {cmd.id} not found");
+                    return;
+                }
+
+                // Check if the object is a light
+                if (!(oci is Studio.OCILight ociLight))
+                {
+                    KKStudioSocketPlugin.Logger.LogWarning($"Object with ID {cmd.id} is not a light (type: {oci.GetType().Name})");
+                    SendErrorResponse($"Object with ID {cmd.id} is not a light. Light commands can only be used on light objects.");
+                    return;
+                }
+
+                bool updated = false;
+
+
+                // Update color if provided
+                if (cmd.color != null && cmd.color.Length >= 3)
+                {
+                    Color newColor = new Color(cmd.color[0], cmd.color[1], cmd.color[2], 1.0f);
+                    ociLight.SetColor(newColor);
+                    updated = true;
+                    KKStudioSocketPlugin.Logger.LogInfo($"Light color updated for ID {cmd.id}: color={newColor}");
+                }
+
+                // Update intensity if provided
+                if (cmd.intensity.HasValue)
+                {
+                    float clampedIntensity = UnityEngine.Mathf.Clamp(cmd.intensity.Value, 0.1f, 2.0f);
+                    if (ociLight.SetIntensity(clampedIntensity))
+                    {
+                        updated = true;
+                        KKStudioSocketPlugin.Logger.LogInfo($"Light intensity updated for ID {cmd.id}: intensity={clampedIntensity}");
+                    }
+                }
+
+                // Update range if provided
+                if (cmd.range.HasValue)
+                {
+                    float minRange = (ociLight.lightType == UnityEngine.LightType.Spot) ? 0.5f : 0.1f;
+                    float clampedRange = UnityEngine.Mathf.Clamp(cmd.range.Value, minRange, 100.0f);
+                    if (ociLight.SetRange(clampedRange))
+                    {
+                        updated = true;
+                        KKStudioSocketPlugin.Logger.LogInfo($"Light range updated for ID {cmd.id}: range={clampedRange}");
+                    }
+                }
+
+                // Update spot angle if provided (only for spot lights)
+                if (cmd.spotAngle.HasValue)
+                {
+                    if (ociLight.lightType == UnityEngine.LightType.Spot)
+                    {
+                        float clampedAngle = UnityEngine.Mathf.Clamp(cmd.spotAngle.Value, 1.0f, 179.0f);
+                        if (ociLight.SetSpotAngle(clampedAngle))
+                        {
+                            updated = true;
+                            KKStudioSocketPlugin.Logger.LogInfo($"Light spot angle updated for ID {cmd.id}: spotAngle={clampedAngle}");
+                        }
+                    }
+                    else
+                    {
+                        KKStudioSocketPlugin.Logger.LogWarning($"Spot angle can only be set for spot lights. Light ID {cmd.id} is {ociLight.lightType}");
+                    }
+                }
+
+                // Update enable state if provided
+                if (cmd.enable.HasValue)
+                {
+                    bool enableValue = cmd.enable.Value;
+                    // Force the enable state to ensure it's applied even if it's the same value
+                    if (ociLight.SetEnable(enableValue, true)) // _force = true
+                    {
+                        updated = true;
+                        KKStudioSocketPlugin.Logger.LogInfo($"Light enable state updated for ID {cmd.id}: enabled={enableValue}");
+                    }
+                    else
+                    {
+                        // Even if SetEnable returns false, consider it updated for UI sync
+                        updated = true;
+                        KKStudioSocketPlugin.Logger.LogInfo($"Light enable state forced for ID {cmd.id}: enabled={enableValue}");
+                    }
+                }
+
+                if (updated)
+                {
+                    // Force UI update to ensure light changes are immediately visible
+                    try
+                    {
+                        // Update UI panel if this light is currently selected
+                        var studio = Studio.Studio.Instance;
+                        var selectedObjects = studio.treeNodeCtrl.selectObjectCtrl;
+                        if (selectedObjects != null && selectedObjects.Contains(oci))
+                        {
+                            // Find MPLightCtrl component in the scene
+                            var mpLightCtrl = UnityEngine.Object.FindObjectOfType<MPLightCtrl>();
+                            if (mpLightCtrl != null && mpLightCtrl.ociLight == ociLight)
+                            {
+                                // Use reflection to set isUpdateInfo flag to prevent toggle event loops
+                                var isUpdateInfoField = typeof(MPLightCtrl).GetField("isUpdateInfo", 
+                                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                                if (isUpdateInfoField != null)
+                                {
+                                    // Set isUpdateInfo to true to prevent OnValueChangeEnable from triggering
+                                    isUpdateInfoField.SetValue(mpLightCtrl, true);
+                                    
+                                    // Get toggleVisible field and update it directly
+                                    var toggleField = typeof(MPLightCtrl).GetField("toggleVisible", 
+                                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                                    if (toggleField != null)
+                                    {
+                                        var toggle = (UnityEngine.UI.Toggle)toggleField.GetValue(mpLightCtrl);
+                                        if (toggle != null)
+                                        {
+                                            // Directly update the toggle state while isUpdateInfo is true
+                                            toggle.isOn = ociLight.lightInfo.enable;
+                                        }
+                                    }
+                                    
+                                    // Reset isUpdateInfo flag
+                                    isUpdateInfoField.SetValue(mpLightCtrl, false);
+                                }
+                                else
+                                {
+                                    // Fallback: normal UpdateInfo call
+                                    mpLightCtrl.UpdateInfo();
+                                }
+                            }
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        KKStudioSocketPlugin.Logger.LogWarning($"Failed to force light UI update: {ex.Message}");
+                    }
+                    
+                    SendSuccessResponse($"Light properties updated for ID {cmd.id}");
+                }
+                else
+                {
+                    KKStudioSocketPlugin.Logger.LogWarning($"No valid light properties provided for ID {cmd.id}");
+                    SendErrorResponse($"No valid light properties provided for ID {cmd.id}");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                KKStudioSocketPlugin.Logger.LogError($"Light update error: {ex.Message}");
+                SendErrorResponse($"Light update error: {ex.Message}");
             }
         }
         
