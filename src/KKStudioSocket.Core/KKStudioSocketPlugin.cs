@@ -76,7 +76,9 @@ namespace KKStudioSocket
             }
             catch (Exception e)
             {
-                Logger.LogError($"Failed to start WebSocket server: {e.Message}");
+                Logger.LogFatal($"Failed to start WebSocket server: {e.Message}");
+                Logger.LogFatal("KKStudioSocket plugin will be disabled due to critical startup failure.");
+                this.enabled = false;
             }
         }
 
