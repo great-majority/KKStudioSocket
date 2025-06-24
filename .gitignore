@@ -341,4 +341,7 @@ FodyWeavers.xsd
 # bin/
 # obj/
 
+# python environment for testing
+.venv/
+
 .claude/
