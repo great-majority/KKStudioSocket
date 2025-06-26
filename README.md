@@ -16,6 +16,10 @@ KKStudioSocket allows you to control Koikatsu Studio objects remotely via WebSoc
 - **Retrieve scene structure** as a hierarchical tree
 - **Control the scene** programmatically from external applications
 
+### Sample (Adding Objects)
+
+https://github.com/user-attachments/assets/c1d621d2-a920-49b9-8029-12ce26546203
+
 ## 📋 Requirements
 
 - **Koikatsu (KK)** or **Koikatsu Sunshine (KKS)**
