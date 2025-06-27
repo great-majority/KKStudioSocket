@@ -80,6 +80,10 @@ All commands and responses use JSON format.
 ### Table of Contents
 - [🏓 Ping-Pong (Connection Test)](#-ping-pong-connection-test)
 - [🌲 Tree (Scene Structure)](#-tree-scene-structure)
+- [📦 Item (Item Catalog)](#-item-item-catalog)
+  - [List Groups](#list-groups)
+  - [List Group Categories](#list-group-categories)
+  - [List Category Items](#list-category-items)
 - [🔄 Update (Object Properties)](#-update-object-properties)
   - [Update Transform](#update-transform)
   - [Update Item Color](#update-item-color)
@@ -146,6 +150,127 @@ Retrieve the complete scene object hierarchy:
     "children": [...]
   }
 ]
+```
+
+### 📦 Item (Item Catalog)
+
+Retrieve information about all available items that can be added to the scene. Items are organized in a hierarchical structure: Groups → Categories → Items.
+
+#### List Groups
+
+Get a list of all item groups:
+
+**Request:**
+```json
+{
+  "type": "item",
+  "command": "list-groups"
+}
+```
+
+**Response:**
+```json
+{
+  "type": "success",
+  "command": "list-groups",
+  "data": [
+    {
+      "id": 0,
+      "name": "Items",
+      "categoryCount": 15
+    },
+    {
+      "id": 1,
+      "name": "Lights",
+      "categoryCount": 3
+    }
+  ]
+}
+```
+
+#### List Group Categories
+
+Get categories within a specific group:
+
+**Request:**
+```json
+{
+  "type": "item",
+  "command": "list-group",
+  "groupId": 0
+}
+```
+
+**Response:**
+```json
+{
+  "type": "success",
+  "command": "list-group",
+  "groupId": 0,
+  "data": {
+    "id": 0,
+    "name": "Items",
+    "categories": [
+      {
+        "id": 0,
+        "name": "Shapes",
+        "itemCount": 25
+      },
+      {
+        "id": 1,
+        "name": "Furniture",
+        "itemCount": 42
+      }
+    ]
+  }
+}
+```
+
+#### List Category Items
+
+Get all items within a specific category:
+
+**Request:**
+```json
+{
+  "type": "item",
+  "command": "list-category",
+  "groupId": 0,
+  "categoryId": 0
+}
+```
+
+**Response:**
+```json
+{
+  "type": "success",
+  "command": "list-category",
+  "groupId": 0,
+  "categoryId": 0,
+  "data": {
+    "id": 0,
+    "name": "Shapes",
+    "groupId": 0,
+    "items": [
+      {
+        "id": 0,
+        "name": "Sphere (Normal)",
+        "properties": {
+          "isAnime": false,
+          "isScale": true,
+          "hasColor": true,
+          "colorSlots": 3,
+          "hasPattern": false,
+          "patternSlots": 0,
+          "isEmission": false,
+          "isGlass": false,
+          "bones": 0,
+          "childRoot": ""
+        }
+      }
+    ]
+  }
+}
 ```
 
 ### 📝 Update (Modify Objects)
