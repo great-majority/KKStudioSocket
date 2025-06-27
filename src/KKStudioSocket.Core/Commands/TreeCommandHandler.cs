@@ -41,7 +41,7 @@ namespace KKStudioSocket.Commands
 
         private object BuildNodeJson(TreeNodeObject node, ObjectCtrlInfo info)
         {
-            return new
+            var baseInfo = new
             {
                 name = node.textName,
                 objectInfo = new
@@ -54,6 +54,29 @@ namespace KKStudioSocket.Commands
                     .Select(child => BuildNodeJson(child, Studio.Studio.Instance.dicInfo[child]))
                     .ToList()
             };
+
+            // Add detailed information for items
+            if (info is OCIItem itemInfo && itemInfo.itemInfo != null)
+            {
+                return new
+                {
+                    name = baseInfo.name,
+                    objectInfo = new
+                    {
+                        id = baseInfo.objectInfo.id,
+                        type = baseInfo.objectInfo.type,
+                        itemDetail = new
+                        {
+                            group = itemInfo.itemInfo.group,
+                            category = itemInfo.itemInfo.category,
+                            itemId = itemInfo.itemInfo.no
+                        }
+                    },
+                    children = baseInfo.children
+                };
+            }
+
+            return baseInfo;
         }
     }
 }

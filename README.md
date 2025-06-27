@@ -129,7 +129,7 @@ Test connection and latency:
 
 ### 🌳 Tree (Get Scene Structure)
 
-Retrieve the complete scene object hierarchy:
+Retrieve the complete scene object hierarchy with detailed information:
 
 **Request:**
 ```json
@@ -145,12 +145,27 @@ Retrieve the complete scene object hierarchy:
     "name": "Item Name",
     "objectInfo": {
       "id": 12345,
-      "type": "OCIItem"
+      "type": "OCIItem",
+      "itemDetail": {
+        "group": 0,
+        "category": 1,
+        "itemId": 5
+      }
+    },
+    "children": [...]
+  },
+  {
+    "name": "Character Name",
+    "objectInfo": {
+      "id": 67890,
+      "type": "OCIChar"
     },
     "children": [...]
   }
 ]
 ```
+
+**Note:** For item objects (type: "OCIItem"), the response includes an `itemDetail` object with the original item catalog information (group, category, itemId) that was used when adding the item to the scene.
 
 ### 📦 Item (Item Catalog)
 
