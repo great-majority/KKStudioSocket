@@ -76,6 +76,10 @@ ws://127.0.0.1:8765/ws
 ### 目次
 - [🏓 Ping-Pong（接続テスト）](#-ping-pong接続テスト)
 - [🌲 Tree（シーン構造）](#-treeシーン構造)
+- [📦 Item（アイテムカタログ）](#-itemアイテムカタログ)
+  - [グループ一覧取得](#グループ一覧取得)
+  - [グループ内カテゴリ取得](#グループ内カテゴリ取得)
+  - [カテゴリ内アイテム取得](#カテゴリ内アイテム取得)
 - [🔄 Update（オブジェクト変更）](#-updateオブジェクト変更)
   - [Transform更新](#transform更新)
   - [アイテム色変更](#アイテム色変更)
@@ -142,6 +146,127 @@ ws://127.0.0.1:8765/ws
     "children": [...]
   }
 ]
+```
+
+### 📦 Item（アイテムカタログ）
+
+シーンに追加可能なすべてのアイテムの情報を取得します。アイテムは階層構造で整理されています：グループ → カテゴリ → アイテム。
+
+#### グループ一覧取得
+
+すべてのアイテムグループの一覧を取得：
+
+**リクエスト:**
+```json
+{
+  "type": "item",
+  "command": "list-groups"
+}
+```
+
+**レスポンス:**
+```json
+{
+  "type": "success",
+  "command": "list-groups",
+  "data": [
+    {
+      "id": 0,
+      "name": "アイテム",
+      "categoryCount": 15
+    },
+    {
+      "id": 1,
+      "name": "ライト",
+      "categoryCount": 3
+    }
+  ]
+}
+```
+
+#### グループ内カテゴリ取得
+
+指定したグループ内のカテゴリを取得：
+
+**リクエスト:**
+```json
+{
+  "type": "item",
+  "command": "list-group",
+  "groupId": 0
+}
+```
+
+**レスポンス:**
+```json
+{
+  "type": "success",
+  "command": "list-group",
+  "groupId": 0,
+  "data": {
+    "id": 0,
+    "name": "アイテム",
+    "categories": [
+      {
+        "id": 0,
+        "name": "図形",
+        "itemCount": 25
+      },
+      {
+        "id": 1,
+        "name": "家具",
+        "itemCount": 42
+      }
+    ]
+  }
+}
+```
+
+#### カテゴリ内アイテム取得
+
+指定したカテゴリ内のすべてのアイテムを取得：
+
+**リクエスト:**
+```json
+{
+  "type": "item",
+  "command": "list-category",
+  "groupId": 0,
+  "categoryId": 0
+}
+```
+
+**レスポンス:**
+```json
+{
+  "type": "success",
+  "command": "list-category",
+  "groupId": 0,
+  "categoryId": 0,
+  "data": {
+    "id": 0,
+    "name": "図形",
+    "groupId": 0,
+    "items": [
+      {
+        "id": 0,
+        "name": "スフィア（通常）",
+        "properties": {
+          "isAnime": false,
+          "isScale": true,
+          "hasColor": true,
+          "colorSlots": 3,
+          "hasPattern": false,
+          "patternSlots": 0,
+          "isEmission": false,
+          "isGlass": false,
+          "bones": 0,
+          "childRoot": ""
+        }
+      }
+    ]
+  }
+}
 ```
 
 ### 📝 Update（オブジェクト変更）

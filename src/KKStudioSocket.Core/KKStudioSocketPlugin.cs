@@ -149,6 +149,21 @@ namespace KKStudioSocket
                         KKStudioSocketPlugin.Logger.LogDebug("Tree handler executed");
                         break;
 
+                    case "item":
+                        KKStudioSocketPlugin.Logger.LogDebug("Handling item command");
+                        var itemCmd = JsonConvert.DeserializeObject<ItemCommand>(e.Data);
+                        if (itemCmd != null)
+                        {
+                            var itemHandler = new ItemCommandHandler(Send);
+                            itemHandler.Handle(itemCmd);
+                        }
+                        else
+                        {
+                            KKStudioSocketPlugin.Logger.LogWarning("Failed to parse item command");
+                        }
+                        KKStudioSocketPlugin.Logger.LogDebug("Item handler executed");
+                        break;
+
                     case "update":
                         var updateCmd = JsonConvert.DeserializeObject<UpdateCommand>(e.Data);
                         if (updateCmd != null)
@@ -314,6 +329,14 @@ namespace KKStudioSocket
         public float[] rot;
         public float fov;
         public int cameraId; // For switching to specific camera object
+    }
+
+    [Serializable]
+    public class ItemCommand : BaseCommand
+    {
+        public string command;
+        public int groupId = -1;
+        public int categoryId = -1;
     }
 
 }
