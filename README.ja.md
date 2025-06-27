@@ -22,12 +22,16 @@ KKStudioSocketを使用すると、WebSocket接続を通じてコイカツのス
 - **BepInEx 5.4.21+** がインストール済み
 - **IllusionModdingAPI** (KKAPI/KKSAPI) がインストール済み
 
+### サンプル動画 (立方体を外部から追加する)
+
+https://github.com/user-attachments/assets/c1d621d2-a920-49b9-8029-12ce26546203
+
 ## 🚀 インストール方法
 
 1. **ダウンロード**: [Releases](https://github.com/great-majority/KKStudioSocket/releases)から最新版をダウンロード
    - お使いのゲームに適したパッケージを選択：
-     - `KKStudioSocket-KK-[version].zip` - コイカツ用
-     - `KKStudioSocket-KKS-[version].zip` - コイカツサンシャイン用
+     - `KK-KKStudioSocket-[version].zip` - コイカツ用
+     - `KKS-KKStudioSocket-[version].zip` - コイカツサンシャイン用
 
 2. **ファイル展開**: zipファイルを展開すると以下のファイルが含まれています：
    - **メインプラグイン**: `KK_KKStudioSocket.dll` または `KKS_KKStudioSocket.dll`
