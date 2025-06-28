@@ -104,6 +104,7 @@ ws://127.0.0.1:8765/ws
   - [カメラオブジェクトに切り替え](#カメラオブジェクトに切り替え)
   - [フリーカメラに切り替え](#フリーカメラに切り替え)
   - [現在のビュー取得](#現在のビュー取得)
+- [📸 Screenshot（スクリーンショット）](#-screenshotスクリーンショット)
 
 ### 🏓 Ping-Pong（接続テスト）
 
@@ -931,6 +932,69 @@ ws://127.0.0.1:8765/ws
   "activeCameraId": 12345
 }
 ```
+
+### 📸 Screenshot（スクリーンショット）
+
+現在のStudioビューをPNG画像としてキャプチャ：
+
+**リクエスト（デフォルト480p）:**
+```json
+{
+  "type": "screenshot"
+}
+```
+
+**リクエスト（カスタムサイズ）:**
+```json
+{
+  "type": "screenshot",
+  "width": 1920,
+  "height": 1080
+}
+```
+
+**リクエスト（透明度付き）:**
+```json
+{
+  "type": "screenshot",
+  "width": 854,
+  "height": 480,
+  "transparency": true,
+  "mark": false
+}
+```
+
+**パラメータ:**
+- `width` （オプション）: 画像幅（ピクセル）（デフォルト: 854）
+- `height` （オプション）: 画像高さ（ピクセル）（デフォルト: 480）
+- `transparency` （オプション）: 透明度のアルファチャンネル含有（デフォルト: false）
+- `mark` （オプション）: キャプチャマークオーバーレイ表示（デフォルト: true）
+
+**レスポンス（成功）:**
+```json
+{
+  "type": "success",
+  "message": "Screenshot captured successfully",
+  "data": {
+    "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+    "width": 854,
+    "height": 480,
+    "format": "png",
+    "transparency": false,
+    "size": 12345
+  }
+}
+```
+
+**レスポンス（エラー）:**
+```json
+{
+  "type": "error",
+  "message": "Screenshot failed: [エラー詳細]"
+}
+```
+
+`image`フィールドにはBase64形式でエンコードされたPNGデータが含まれています。HTMLで直接使用するか、デコードしてファイルとして保存できます。
 
 ## 💡 使用例
 

@@ -104,6 +104,7 @@ All commands and responses use JSON format.
   - [Switch to Camera Object](#switch-to-camera-object)
   - [Switch to Free Camera](#switch-to-free-camera)
   - [Get Current View](#get-current-view)
+- [📸 Screenshot (Capture Screen)](#-screenshot-capture-screen)
 
 ### 🏓 Ping-Pong (Connection Test)
 
@@ -931,6 +932,69 @@ Retrieve current camera information:
   "activeCameraId": 12345
 }
 ```
+
+### 📸 Screenshot (Capture Screen)
+
+Capture the current Studio view as a PNG image:
+
+**Request (Default 480p):**
+```json
+{
+  "type": "screenshot"
+}
+```
+
+**Request (Custom size):**
+```json
+{
+  "type": "screenshot",
+  "width": 1920,
+  "height": 1080
+}
+```
+
+**Request (With transparency):**
+```json
+{
+  "type": "screenshot",
+  "width": 854,
+  "height": 480,
+  "transparency": true,
+  "mark": false
+}
+```
+
+**Parameters:**
+- `width` (optional): Image width in pixels (default: 854)
+- `height` (optional): Image height in pixels (default: 480)
+- `transparency` (optional): Include alpha channel for transparency (default: false)
+- `mark` (optional): Include capture mark overlay (default: true)
+
+**Response (Success):**
+```json
+{
+  "type": "success",
+  "message": "Screenshot captured successfully",
+  "data": {
+    "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+    "width": 854,
+    "height": 480,
+    "format": "png",
+    "transparency": false,
+    "size": 12345
+  }
+}
+```
+
+**Response (Error):**
+```json
+{
+  "type": "error",
+  "message": "Screenshot failed: [error details]"
+}
+```
+
+The `image` field contains the PNG data encoded in Base64 format. You can use it directly in HTML or decode it to save as a file.
 
 ## 💡 Usage Examples
 
