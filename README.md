@@ -146,6 +146,23 @@ Retrieve the complete scene object hierarchy with detailed information including
 }
 ```
 
+**Request (Specific object subtree):**
+```json
+{
+  "type": "tree",
+  "id": 12345
+}
+```
+
+**Request (Specific object with depth limit):**
+```json
+{
+  "type": "tree",
+  "id": 12345,
+  "depth": 1
+}
+```
+
 **Response:**
 ```json
 [
@@ -185,9 +202,12 @@ Retrieve the complete scene object hierarchy with detailed information including
 
 **Parameters:**
 - `depth` (optional): Maximum hierarchy depth to retrieve (default: unlimited)
-  - `1` = Only root objects (no children)
-  - `2` = Root objects + immediate children
+  - `1` = Only the specified object (no children)
+  - `2` = Specified object + immediate children
   - `null` or omitted = All levels (default behavior)
+- `id` (optional): Specific object ID to retrieve subtree from (default: all root objects)
+  - When specified, returns only the subtree starting from this object
+  - When omitted, returns all root objects and their children
 
 **Transform Information:**
 - `pos`: Position [X, Y, Z] coordinates

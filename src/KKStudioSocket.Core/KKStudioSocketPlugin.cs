@@ -353,6 +353,7 @@ namespace KKStudioSocket
     public class TreeCommand : BaseCommand
     {
         public int? depth; // Maximum depth to retrieve (null = unlimited)
+        public int? id; // Specific object ID to start from (null = all roots)
     }
 
 }

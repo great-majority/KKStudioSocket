@@ -15,24 +15,54 @@ namespace KKStudioSocket.Commands
         {
             try
             {
-                List<object> roots = new List<object>();
                 int? maxDepth = cmd?.depth;
+                int? startId = cmd?.id;
 
-                foreach (var kv in Studio.Studio.Instance.dicInfo)
+                if (startId.HasValue)
                 {
-                    var node = kv.Key;
-                    var info = kv.Value;
-
-                    if (node.parent == null)
+                    // Find specific object and return its subtree
+                    var targetNode = Studio.Studio.Instance.dicInfo.Keys.FirstOrDefault(node => 
+                        Studio.Studio.Instance.dicInfo[node].objectInfo.dicKey == startId.Value);
+                    
+                    if (targetNode != null)
                     {
-                        roots.Add(BuildNodeJson(node, info, maxDepth, 0));
+                        var targetInfo = Studio.Studio.Instance.dicInfo[targetNode];
+                        var result = BuildNodeJson(targetNode, targetInfo, maxDepth, 0);
+                        var jsonResponse = JsonConvert.SerializeObject(result);
+                        KKStudioSocketPlugin.Logger.LogDebug($"Tree command received for specific object ID: {startId}, maxDepth: {maxDepth?.ToString() ?? "unlimited"}");
+                        Send(jsonResponse);
+                    }
+                    else
+                    {
+                        // Object not found
+                        var errorResponse = JsonConvert.SerializeObject(new { 
+                            type = "error", 
+                            message = $"Object with ID {startId} not found" 
+                        });
+                        Send(errorResponse);
+                        KKStudioSocketPlugin.Logger.LogWarning($"Tree command: Object with ID {startId} not found");
                     }
                 }
+                else
+                {
+                    // Default behavior: return all root objects
+                    List<object> roots = new List<object>();
 
-                var jsonResponse = JsonConvert.SerializeObject(roots);
-                KKStudioSocketPlugin.Logger.LogDebug($"Tree command received, number of root objects: {roots.Count}, maxDepth: {maxDepth?.ToString() ?? "unlimited"}");
-                
-                Send(jsonResponse);
+                    foreach (var kv in Studio.Studio.Instance.dicInfo)
+                    {
+                        var node = kv.Key;
+                        var info = kv.Value;
+
+                        if (node.parent == null)
+                        {
+                            roots.Add(BuildNodeJson(node, info, maxDepth, 0));
+                        }
+                    }
+
+                    var jsonResponse = JsonConvert.SerializeObject(roots);
+                    KKStudioSocketPlugin.Logger.LogDebug($"Tree command received, number of root objects: {roots.Count}, maxDepth: {maxDepth?.ToString() ?? "unlimited"}");
+                    Send(jsonResponse);
+                }
             }
             catch (Exception ex)
             {
