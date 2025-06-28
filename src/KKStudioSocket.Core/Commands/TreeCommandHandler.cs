@@ -11,11 +11,12 @@ namespace KKStudioSocket.Commands
     {
         public TreeCommandHandler(System.Action<string> sendCallback) : base(sendCallback) { }
         
-        public void Handle()
+        public void Handle(TreeCommand cmd = null)
         {
             try
             {
                 List<object> roots = new List<object>();
+                int? maxDepth = cmd?.depth;
 
                 foreach (var kv in Studio.Studio.Instance.dicInfo)
                 {
@@ -24,12 +25,12 @@ namespace KKStudioSocket.Commands
 
                     if (node.parent == null)
                     {
-                        roots.Add(BuildNodeJson(node, info));
+                        roots.Add(BuildNodeJson(node, info, maxDepth, 0));
                     }
                 }
 
                 var jsonResponse = JsonConvert.SerializeObject(roots);
-                KKStudioSocketPlugin.Logger.LogDebug($"Tree command received, number of root objects: {roots.Count}");
+                KKStudioSocketPlugin.Logger.LogDebug($"Tree command received, number of root objects: {roots.Count}, maxDepth: {maxDepth?.ToString() ?? "unlimited"}");
                 
                 Send(jsonResponse);
             }
@@ -39,7 +40,13 @@ namespace KKStudioSocket.Commands
             }
         }
 
-        private object BuildNodeJson(TreeNodeObject node, ObjectCtrlInfo info)
+        // Backward compatibility
+        public void Handle()
+        {
+            Handle(null);
+        }
+
+        private object BuildNodeJson(TreeNodeObject node, ObjectCtrlInfo info, int? maxDepth, int currentDepth)
         {
             // Get transform information
             var transform = new
@@ -61,6 +68,16 @@ namespace KKStudioSocket.Commands
                 }
             };
 
+            // Build children only if depth limit not reached
+            var children = new List<object>();
+            if (maxDepth == null || currentDepth < maxDepth)
+            {
+                children = node.child
+                    .Where(child => Studio.Studio.Instance.dicInfo.ContainsKey(child))
+                    .Select(child => BuildNodeJson(child, Studio.Studio.Instance.dicInfo[child], maxDepth, currentDepth + 1))
+                    .ToList();
+            }
+
             var baseInfo = new
             {
                 name = node.textName,
@@ -70,10 +87,7 @@ namespace KKStudioSocket.Commands
                     type = info.GetType().Name,
                     transform = transform
                 },
-                children = node.child
-                    .Where(child => Studio.Studio.Instance.dicInfo.ContainsKey(child))
-                    .Select(child => BuildNodeJson(child, Studio.Studio.Instance.dicInfo[child]))
-                    .ToList()
+                children = children
             };
 
             // Add detailed information for items

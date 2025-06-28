@@ -131,10 +131,18 @@ Test connection and latency:
 
 Retrieve the complete scene object hierarchy with detailed information including transform data:
 
-**Request:**
+**Request (All levels):**
 ```json
 {
   "type": "tree"
+}
+```
+
+**Request (Limited depth):**
+```json
+{
+  "type": "tree",
+  "depth": 2
 }
 ```
 
@@ -174,6 +182,12 @@ Retrieve the complete scene object hierarchy with detailed information including
   }
 ]
 ```
+
+**Parameters:**
+- `depth` (optional): Maximum hierarchy depth to retrieve (default: unlimited)
+  - `1` = Only root objects (no children)
+  - `2` = Root objects + immediate children
+  - `null` or omitted = All levels (default behavior)
 
 **Transform Information:**
 - `pos`: Position [X, Y, Z] coordinates

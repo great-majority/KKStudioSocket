@@ -144,8 +144,18 @@ namespace KKStudioSocket
 
                     case "tree":
                         KKStudioSocketPlugin.Logger.LogDebug("Handling tree command");
-                        var treeHandler = new TreeCommandHandler(Send);
-                        treeHandler.Handle();
+                        var treeCmd = JsonConvert.DeserializeObject<TreeCommand>(e.Data);
+                        if (treeCmd != null)
+                        {
+                            var treeHandler = new TreeCommandHandler(Send);
+                            treeHandler.Handle(treeCmd);
+                        }
+                        else
+                        {
+                            // Fallback for backward compatibility
+                            var treeHandler = new TreeCommandHandler(Send);
+                            treeHandler.Handle();
+                        }
                         KKStudioSocketPlugin.Logger.LogDebug("Tree handler executed");
                         break;
 
@@ -337,6 +347,12 @@ namespace KKStudioSocket
         public string command;
         public int groupId = -1;
         public int categoryId = -1;
+    }
+
+    [Serializable]
+    public class TreeCommand : BaseCommand
+    {
+        public int? depth; // Maximum depth to retrieve (null = unlimited)
     }
 
 }
