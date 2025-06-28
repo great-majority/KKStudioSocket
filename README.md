@@ -129,12 +129,37 @@ Test connection and latency:
 
 ### 🌳 Tree (Get Scene Structure)
 
-Retrieve the complete scene object hierarchy with detailed information:
+Retrieve the complete scene object hierarchy with detailed information including transform data:
 
-**Request:**
+**Request (All levels):**
 ```json
 {
   "type": "tree"
+}
+```
+
+**Request (Limited depth):**
+```json
+{
+  "type": "tree",
+  "depth": 2
+}
+```
+
+**Request (Specific object subtree):**
+```json
+{
+  "type": "tree",
+  "id": 12345
+}
+```
+
+**Request (Specific object with depth limit):**
+```json
+{
+  "type": "tree",
+  "id": 12345,
+  "depth": 1
 }
 ```
 
@@ -146,6 +171,11 @@ Retrieve the complete scene object hierarchy with detailed information:
     "objectInfo": {
       "id": 12345,
       "type": "OCIItem",
+      "transform": {
+        "pos": [0.0, 1.0, 0.0],
+        "rot": [0.0, 90.0, 0.0],
+        "scale": [1.0, 1.0, 1.0]
+      },
       "itemDetail": {
         "group": 0,
         "category": 1,
@@ -158,12 +188,31 @@ Retrieve the complete scene object hierarchy with detailed information:
     "name": "Character Name",
     "objectInfo": {
       "id": 67890,
-      "type": "OCIChar"
+      "type": "OCIChar",
+      "transform": {
+        "pos": [2.0, 0.0, -1.0],
+        "rot": [0.0, 45.0, 0.0],
+        "scale": [1.0, 1.0, 1.0]
+      }
     },
     "children": [...]
   }
 ]
 ```
+
+**Parameters:**
+- `depth` (optional): Maximum hierarchy depth to retrieve (default: unlimited)
+  - `1` = Only the specified object (no children)
+  - `2` = Specified object + immediate children
+  - `null` or omitted = All levels (default behavior)
+- `id` (optional): Specific object ID to retrieve subtree from (default: all root objects)
+  - When specified, returns only the subtree starting from this object
+  - When omitted, returns all root objects and their children
+
+**Transform Information:**
+- `pos`: Position [X, Y, Z] coordinates
+- `rot`: Rotation [X, Y, Z] in degrees
+- `scale`: Scale [X, Y, Z] multipliers
 
 **Note:** For item objects (type: "OCIItem"), the response includes an `itemDetail` object with the original item catalog information (group, category, itemId) that was used when adding the item to the scene.
 
