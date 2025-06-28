@@ -129,7 +129,7 @@ ws://127.0.0.1:8765/ws
 
 ### 🌳 Tree（シーン構造取得）
 
-シーン内のオブジェクト階層構造を詳細情報付きで取得：
+シーン内のオブジェクト階層構造をTransform情報も含めて詳細に取得：
 
 **リクエスト:**
 ```json
@@ -146,6 +146,11 @@ ws://127.0.0.1:8765/ws
     "objectInfo": {
       "id": 12345,
       "type": "OCIItem",
+      "transform": {
+        "pos": [0.0, 1.0, 0.0],
+        "rot": [0.0, 90.0, 0.0],
+        "scale": [1.0, 1.0, 1.0]
+      },
       "itemDetail": {
         "group": 0,
         "category": 1,
@@ -158,12 +163,22 @@ ws://127.0.0.1:8765/ws
     "name": "キャラクター名",
     "objectInfo": {
       "id": 67890,
-      "type": "OCIChar"
+      "type": "OCIChar",
+      "transform": {
+        "pos": [2.0, 0.0, -1.0],
+        "rot": [0.0, 45.0, 0.0],
+        "scale": [1.0, 1.0, 1.0]
+      }
     },
     "children": [...]
   }
 ]
 ```
+
+**Transform情報:**
+- `pos`: 位置 [X, Y, Z] 座標
+- `rot`: 回転 [X, Y, Z] 度数
+- `scale`: スケール [X, Y, Z] 倍率
 
 **注意:** アイテムオブジェクト（type: "OCIItem"）の場合、レスポンスにはアイテムをシーンに追加した時に使用した元のアイテムカタログ情報（group、category、itemId）を含む`itemDetail`オブジェクトが含まれます。
 

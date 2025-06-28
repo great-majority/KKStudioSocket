@@ -41,13 +41,34 @@ namespace KKStudioSocket.Commands
 
         private object BuildNodeJson(TreeNodeObject node, ObjectCtrlInfo info)
         {
+            // Get transform information
+            var transform = new
+            {
+                pos = new float[] { 
+                    info.objectInfo.changeAmount.pos.x, 
+                    info.objectInfo.changeAmount.pos.y, 
+                    info.objectInfo.changeAmount.pos.z 
+                },
+                rot = new float[] { 
+                    info.objectInfo.changeAmount.rot.x, 
+                    info.objectInfo.changeAmount.rot.y, 
+                    info.objectInfo.changeAmount.rot.z 
+                },
+                scale = new float[] { 
+                    info.objectInfo.changeAmount.scale.x, 
+                    info.objectInfo.changeAmount.scale.y, 
+                    info.objectInfo.changeAmount.scale.z 
+                }
+            };
+
             var baseInfo = new
             {
                 name = node.textName,
                 objectInfo = new
                 {
                     id = info.objectInfo.dicKey,
-                    type = info.GetType().Name
+                    type = info.GetType().Name,
+                    transform = transform
                 },
                 children = node.child
                     .Where(child => Studio.Studio.Instance.dicInfo.ContainsKey(child))
@@ -65,6 +86,7 @@ namespace KKStudioSocket.Commands
                     {
                         id = baseInfo.objectInfo.id,
                         type = baseInfo.objectInfo.type,
+                        transform = baseInfo.objectInfo.transform,
                         itemDetail = new
                         {
                             group = itemInfo.itemInfo.group,
