@@ -234,6 +234,17 @@ namespace KKStudioSocket
                         }
                         break;
 
+                    case "screenshot":
+                        var screenshotCmd = JsonConvert.DeserializeObject<ScreenshotCommand>(e.Data);
+                        if (screenshotCmd != null)
+                        {
+                            EnqueueAction(() =>
+                            {
+                                var screenshotHandler = new ScreenshotCommandHandler(Send);
+                                screenshotHandler.Handle(screenshotCmd);
+                            });
+                        }
+                        break;
 
                     default:
                         KKStudioSocketPlugin.Logger.LogWarning($"Unsupported command type: {baseCommand.type}");
@@ -354,6 +365,15 @@ namespace KKStudioSocket
     {
         public int? depth; // Maximum depth to retrieve (null = unlimited)
         public int? id; // Specific object ID to start from (null = all roots)
+    }
+
+    [Serializable]
+    public class ScreenshotCommand : BaseCommand
+    {
+        public int? width; // Screenshot width (default: 854)
+        public int? height; // Screenshot height (default: 480)
+        public bool? transparency; // Include alpha channel (default: false)
+        public bool? mark; // Include capture mark (default: true)
     }
 
 }
