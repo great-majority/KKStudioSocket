@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using WebSocketSharp;
 using Studio;
+using KKStudioSocket.Models.Requests;
+using KKStudioSocket.Models.Responses;
 
 namespace KKStudioSocket.Commands
 {
@@ -47,13 +49,13 @@ namespace KKStudioSocket.Commands
         
         private void SendSuccessResponse(string message)
         {
-            var response = new { type = "success", message = message };
+            var response = new SuccessResponse { message = message };
             Send(Newtonsoft.Json.JsonConvert.SerializeObject(response));
         }
         
         private void SendErrorResponse(string message)
         {
-            var response = new { type = "error", message = message };
+            var response = new ErrorResponse(message);
             Send(Newtonsoft.Json.JsonConvert.SerializeObject(response));
         }
     }

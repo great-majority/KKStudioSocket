@@ -1,6 +1,8 @@
 using System;
 using WebSocketSharp;
 using Newtonsoft.Json;
+using KKStudioSocket.Models.Requests;
+using KKStudioSocket.Models.Responses;
 
 namespace KKStudioSocket.Commands
 {
@@ -14,7 +16,6 @@ namespace KKStudioSocket.Commands
             {
                 var pongResponse = new PongResponse
                 {
-                    type = "pong",
                     timestamp = GetUnixTimeMilliseconds(),
                     message = cmd.message ?? "pong"
                 };
