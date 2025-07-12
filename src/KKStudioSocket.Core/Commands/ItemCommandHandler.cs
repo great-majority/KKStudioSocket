@@ -4,6 +4,8 @@ using System.Linq;
 using WebSocketSharp;
 using Newtonsoft.Json;
 using Studio;
+using KKStudioSocket.Models.Requests;
+using KKStudioSocket.Models.Responses;
 
 namespace KKStudioSocket.Commands
 {
@@ -11,12 +13,12 @@ namespace KKStudioSocket.Commands
     {
         public ItemCommandHandler(System.Action<string> sendCallback) : base(sendCallback) { }
         
-        public void Handle(ItemCommand cmd)
+        public void Handle(Models.Requests.ItemCommand cmd)
         {
             ApplyItemCommand(cmd);
         }
 
-        private void ApplyItemCommand(ItemCommand cmd)
+        private void ApplyItemCommand(Models.Requests.ItemCommand cmd)
         {
             try
             {
@@ -47,15 +49,14 @@ namespace KKStudioSocket.Commands
             }
         }
 
-        private void HandleListGroups(ItemCommand cmd)
+        private void HandleListGroups(Models.Requests.ItemCommand cmd)
         {
             try
             {
                 var groups = GetItemGroups();
                 
-                var response = new
+                var response = new ItemGroupsResponse
                 {
-                    type = "success",
                     command = "list-groups",
                     data = groups
                 };
@@ -70,7 +71,7 @@ namespace KKStudioSocket.Commands
             }
         }
 
-        private void HandleListGroup(ItemCommand cmd)
+        private void HandleListGroup(Models.Requests.ItemCommand cmd)
         {
             try
             {
@@ -87,9 +88,8 @@ namespace KKStudioSocket.Commands
                     return;
                 }
 
-                var response = new
+                var response = new ItemGroupDetailResponse
                 {
-                    type = "success", 
                     command = "list-group",
                     groupId = cmd.groupId,
                     data = groupData
@@ -105,7 +105,7 @@ namespace KKStudioSocket.Commands
             }
         }
 
-        private void HandleListCategory(ItemCommand cmd)
+        private void HandleListCategory(Models.Requests.ItemCommand cmd)
         {
             try
             {
@@ -122,10 +122,9 @@ namespace KKStudioSocket.Commands
                     return;
                 }
 
-                var response = new
+                var response = new ItemCategoryDetailResponse
                 {
-                    type = "success",
-                    command = "list-category", 
+                    command = "list-category",
                     groupId = cmd.groupId,
                     categoryId = cmd.categoryId,
                     data = categoryData
@@ -141,12 +140,17 @@ namespace KKStudioSocket.Commands
             }
         }
 
-        private void HandleCatalog(ItemCommand cmd)
+        private void HandleCatalog(Models.Requests.ItemCommand cmd)
         {
             try
             {
                 var catalog = BuildItemCatalog();
-                var jsonResponse = JsonConvert.SerializeObject(catalog);
+                var response = new ItemCatalogResponse
+                {
+                    command = "catalog",
+                    data = catalog
+                };
+                var jsonResponse = JsonConvert.SerializeObject(response);
                 
                 KKStudioSocketPlugin.Logger.LogDebug($"Item catalog retrieved with {catalog.Count} groups");
                 Send(jsonResponse);
@@ -158,9 +162,9 @@ namespace KKStudioSocket.Commands
             }
         }
 
-        private List<object> BuildItemCatalog()
+        private List<CatalogGroup> BuildItemCatalog()
         {
-            var catalog = new List<object>();
+            var catalog = new List<CatalogGroup>();
             
             // Get singleton Info instance
             var info = Singleton<Info>.Instance;
@@ -176,7 +180,7 @@ namespace KKStudioSocket.Commands
                 int groupId = groupPair.Key;
                 var groupInfo = groupPair.Value;
                 
-                var groupData = new
+                var groupData = new CatalogGroup
                 {
                     id = groupId,
                     name = groupInfo.name,
@@ -190,9 +194,9 @@ namespace KKStudioSocket.Commands
             return catalog;
         }
 
-        private List<object> BuildCategoriesForGroup(int groupId, Info.GroupInfo groupInfo)
+        private List<CatalogCategory> BuildCategoriesForGroup(int groupId, Info.GroupInfo groupInfo)
         {
-            var categories = new List<object>();
+            var categories = new List<CatalogCategory>();
             
             if (groupInfo.dicCategory == null)
             {
@@ -205,7 +209,7 @@ namespace KKStudioSocket.Commands
                 int categoryId = categoryPair.Key;
                 string categoryName = categoryPair.Value;
                 
-                var categoryData = new
+                var categoryData = new CatalogCategory
                 {
                     id = categoryId,
                     name = categoryName,
@@ -219,9 +223,9 @@ namespace KKStudioSocket.Commands
             return categories;
         }
 
-        private List<object> BuildItemsForCategory(int groupId, int categoryId)
+        private List<CatalogItem> BuildItemsForCategory(int groupId, int categoryId)
         {
-            var items = new List<object>();
+            var items = new List<CatalogItem>();
             
             var info = Singleton<Info>.Instance;
             
@@ -239,14 +243,14 @@ namespace KKStudioSocket.Commands
                 int itemId = itemPair.Key;
                 var itemInfo = itemPair.Value;
                 
-                var itemData = new
+                var itemData = new CatalogItem
                 {
                     id = itemId,
                     name = itemInfo.name,
                     type = "item",
                     groupId = groupId,
                     categoryId = categoryId,
-                    properties = new
+                    properties = new CatalogItemProperties
                     {
                         isAnime = itemInfo.isAnime,
                         isScale = itemInfo.isScale,
@@ -259,11 +263,11 @@ namespace KKStudioSocket.Commands
                         childRoot = itemInfo.childRoot,
                         bones = itemInfo.bones?.Count ?? 0
                     },
-                    file = new
+                    file = new CatalogItemFile
                     {
                         manifest = itemInfo.manifest,
-                        bundlePath = itemInfo.bundlePath,
-                        fileName = itemInfo.fileName
+                        assetBundle = itemInfo.bundlePath,
+                        name = itemInfo.fileName
                     }
                 };
                 
@@ -273,9 +277,9 @@ namespace KKStudioSocket.Commands
             return items;
         }
 
-        private List<object> GetItemGroups()
+        private List<ItemGroup> GetItemGroups()
         {
-            var groups = new List<object>();
+            var groups = new List<ItemGroup>();
             
             var info = Singleton<Info>.Instance;
             if (info?.dicItemGroupCategory == null)
@@ -288,7 +292,7 @@ namespace KKStudioSocket.Commands
                 int groupId = groupPair.Key;
                 var groupInfo = groupPair.Value;
                 
-                var groupData = new
+                var groupData = new ItemGroup
                 {
                     id = groupId,
                     name = groupInfo.name,
@@ -298,13 +302,10 @@ namespace KKStudioSocket.Commands
                 groups.Add(groupData);
             }
             
-            return groups.OrderBy(g => {
-                var obj = g.GetType().GetProperty("id").GetValue(g, null);
-                return (int)obj;
-            }).ToList();
+            return groups.OrderBy(g => g.id).ToList();
         }
 
-        private object GetGroupData(int groupId)
+        private ItemGroupDetail GetGroupData(int groupId)
         {
             var info = Singleton<Info>.Instance;
             if (info?.dicItemGroupCategory == null || !info.dicItemGroupCategory.ContainsKey(groupId))
@@ -313,7 +314,7 @@ namespace KKStudioSocket.Commands
             }
 
             var groupInfo = info.dicItemGroupCategory[groupId];
-            var categories = new List<object>();
+            var categories = new List<ItemCategory>();
 
             if (groupInfo.dicCategory != null)
             {
@@ -330,7 +331,7 @@ namespace KKStudioSocket.Commands
                         itemCount = info.dicItemLoadInfo[groupId][categoryId].Count;
                     }
 
-                    var categoryData = new
+                    var categoryData = new ItemCategory
                     {
                         id = categoryId,
                         name = categoryName,
@@ -341,18 +342,15 @@ namespace KKStudioSocket.Commands
                 }
             }
 
-            return new
+            return new ItemGroupDetail
             {
                 id = groupId,
                 name = groupInfo.name,
-                categories = categories.OrderBy(c => {
-                    var obj = c.GetType().GetProperty("id").GetValue(c, null);
-                    return (int)obj;
-                }).ToList()
+                categories = categories.OrderBy(c => c.id).ToList()
             };
         }
 
-        private object GetCategoryData(int groupId, int categoryId)
+        private ItemCategoryDetail GetCategoryData(int groupId, int categoryId)
         {
             var info = Singleton<Info>.Instance;
             
@@ -364,18 +362,18 @@ namespace KKStudioSocket.Commands
                 return null;
             }
 
-            var items = new List<object>();
+            var items = new List<Item>();
 
             foreach (var itemPair in info.dicItemLoadInfo[groupId][categoryId])
             {
                 int itemId = itemPair.Key;
                 var itemInfo = itemPair.Value;
                 
-                var itemData = new
+                var itemData = new Item
                 {
                     id = itemId,
                     name = itemInfo.name,
-                    properties = new
+                    properties = new ItemProperties
                     {
                         isAnime = itemInfo.isAnime,
                         isScale = itemInfo.isScale,
@@ -404,21 +402,18 @@ namespace KKStudioSocket.Commands
                 }
             }
 
-            return new
+            return new ItemCategoryDetail
             {
                 id = categoryId,
                 name = categoryName,
                 groupId = groupId,
-                items = items.OrderBy(i => {
-                    var obj = i.GetType().GetProperty("id").GetValue(i, null);
-                    return (int)obj;
-                }).ToList()
+                items = items.OrderBy(i => i.id).ToList()
             };
         }
         
         private void SendErrorResponse(string message)
         {
-            var response = new { type = "error", message = message };
+            var response = new ErrorResponse(message);
             Send(JsonConvert.SerializeObject(response));
         }
     }

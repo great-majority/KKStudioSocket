@@ -3,6 +3,8 @@ using System.Linq;
 using WebSocketSharp;
 using UnityEngine;
 using Studio;
+using KKStudioSocket.Models.Requests;
+using KKStudioSocket.Models.Responses;
 
 namespace KKStudioSocket.Commands
 {
@@ -301,7 +303,9 @@ namespace KKStudioSocket.Commands
                 // Update color if provided
                 if (cmd.color != null && cmd.color.Length >= 3)
                 {
-                    Color newColor = new Color(cmd.color[0], cmd.color[1], cmd.color[2], 1.0f);
+                    Color newColor = cmd.color.Length >= 4 
+                        ? new Color(cmd.color[0], cmd.color[1], cmd.color[2], cmd.color[3])
+                        : new Color(cmd.color[0], cmd.color[1], cmd.color[2], 1.0f);
                     ociLight.SetColor(newColor);
                     updated = true;
                     KKStudioSocketPlugin.Logger.LogDebug($"Light color updated for ID {cmd.id}: color={newColor}");
@@ -311,11 +315,9 @@ namespace KKStudioSocket.Commands
                 if (cmd.intensity.HasValue)
                 {
                     float clampedIntensity = UnityEngine.Mathf.Clamp(cmd.intensity.Value, 0.1f, 2.0f);
-                    if (ociLight.SetIntensity(clampedIntensity))
-                    {
-                        updated = true;
-                        KKStudioSocketPlugin.Logger.LogDebug($"Light intensity updated for ID {cmd.id}: intensity={clampedIntensity}");
-                    }
+                    ociLight.SetIntensity(clampedIntensity);
+                    updated = true; // Always consider intensity update as successful
+                    KKStudioSocketPlugin.Logger.LogDebug($"Light intensity updated for ID {cmd.id}: intensity={clampedIntensity}");
                 }
 
                 // Update range if provided
@@ -323,11 +325,9 @@ namespace KKStudioSocket.Commands
                 {
                     float minRange = (ociLight.lightType == UnityEngine.LightType.Spot) ? 0.5f : 0.1f;
                     float clampedRange = UnityEngine.Mathf.Clamp(cmd.range.Value, minRange, 100.0f);
-                    if (ociLight.SetRange(clampedRange))
-                    {
-                        updated = true;
-                        KKStudioSocketPlugin.Logger.LogDebug($"Light range updated for ID {cmd.id}: range={clampedRange}");
-                    }
+                    ociLight.SetRange(clampedRange);
+                    updated = true; // Always consider range update as successful
+                    KKStudioSocketPlugin.Logger.LogDebug($"Light range updated for ID {cmd.id}: range={clampedRange}");
                 }
 
                 // Update spot angle if provided (only for spot lights)
@@ -336,11 +336,9 @@ namespace KKStudioSocket.Commands
                     if (ociLight.lightType == UnityEngine.LightType.Spot)
                     {
                         float clampedAngle = UnityEngine.Mathf.Clamp(cmd.spotAngle.Value, 1.0f, 179.0f);
-                        if (ociLight.SetSpotAngle(clampedAngle))
-                        {
-                            updated = true;
-                            KKStudioSocketPlugin.Logger.LogDebug($"Light spot angle updated for ID {cmd.id}: spotAngle={clampedAngle}");
-                        }
+                        ociLight.SetSpotAngle(clampedAngle);
+                        updated = true; // Always consider spot angle update as successful
+                        KKStudioSocketPlugin.Logger.LogDebug($"Light spot angle updated for ID {cmd.id}: spotAngle={clampedAngle}");
                     }
                     else
                     {
@@ -434,13 +432,13 @@ namespace KKStudioSocket.Commands
         
         private void SendSuccessResponse(string message)
         {
-            var response = new { type = "success", message = message };
+            var response = new SuccessResponse { message = message };
             Send(Newtonsoft.Json.JsonConvert.SerializeObject(response));
         }
         
         private void SendErrorResponse(string message)
         {
-            var response = new { type = "error", message = message };
+            var response = new ErrorResponse(message);
             Send(Newtonsoft.Json.JsonConvert.SerializeObject(response));
         }
     }

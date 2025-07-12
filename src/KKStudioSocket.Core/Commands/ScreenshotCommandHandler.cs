@@ -1,6 +1,8 @@
 using System;
 using Newtonsoft.Json;
 using Studio;
+using KKStudioSocket.Models.Requests;
+using KKStudioSocket.Models.Responses;
 
 namespace KKStudioSocket.Commands
 {
@@ -30,11 +32,10 @@ namespace KKStudioSocket.Commands
                         // Convert to Base64
                         string base64Image = Convert.ToBase64String(pngData);
                         
-                        var response = new
+                        var response = new ScreenshotSuccessResponse
                         {
-                            type = "success",
                             message = "Screenshot captured successfully",
-                            data = new
+                            data = new ScreenshotData
                             {
                                 image = base64Image,
                                 width = width,
@@ -51,28 +52,24 @@ namespace KKStudioSocket.Commands
                     }
                     else
                     {
-                        SendError("Failed to generate screenshot - no data returned");
+                        SendErrorResponse("Failed to generate screenshot - no data returned");
                     }
                 }
                 else
                 {
-                    SendError("GameScreenShot instance not available");
+                    SendErrorResponse("GameScreenShot instance not available");
                 }
             }
             catch (Exception ex)
             {
                 KKStudioSocketPlugin.Logger.LogError($"Screenshot command error: {ex.Message}");
-                SendError($"Screenshot failed: {ex.Message}");
+                SendErrorResponse($"Screenshot failed: {ex.Message}");
             }
         }
 
-        private void SendError(string message)
+        private void SendErrorResponse(string message)
         {
-            var errorResponse = new
-            {
-                type = "error",
-                message = message
-            };
+            var errorResponse = new ErrorResponse(message);
             Send(JsonConvert.SerializeObject(errorResponse));
         }
     }

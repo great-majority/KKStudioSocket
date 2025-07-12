@@ -1,146 +1,124 @@
 
-# KKStudioSocket プロジェクト情報
+# KKStudioSocket Project Information
 
-- あなたは日本語で話します。
-- `README.md`には利用者向けの英語ドキュメント、`README.ja.md`には利用者向けの日本語ドキュメントを書きます。どちらかを書き換えた際には、同時にそれぞれの言語版を更新します。
-- 開発者向けの情報は`CONTRIBUTING.md`に記載します。
-- コードを変更したあとはビルドを実行し、問題がないことを確かめます。
-- コード中のコメントは英語で書きます。
-- コミットメッセージは{絵文字 英語でコミットメッセージ}のように書きます。
+- `README.md` contains English documentation for users, `README.ja.md` contains Japanese documentation for users. When updating either file, simultaneously update both language versions.
+- Developer information should be documented in `CONTRIBUTING.md`.
+- Model design and API specifications are documented in `MODELS.md`.
+- After making code changes, run builds to ensure there are no issues.
+- Write code comments in English.
+- Write commit messages in the format: {emoji English commit message}.
 
-## ビルド方法
+## Build Instructions
 
-### WSLからのビルド（推奨）
+### Building from WSL (Recommended)
 
-あなた(Claude)はWSLから実行されているので、各種ビルドコマンドの実行にはpowershell.exeを書く必要があることを忘れないでください。
+Since Claude is running from WSL, remember that you need to use powershell.exe for various build commands.
 
 ```bash
 powershell.exe -ExecutionPolicy Bypass -File "build.ps1" [target] [configuration]
 ```
 
-### ビルドターゲット
-- `build` (デフォルト) - 指定した構成でビルド
-- `rebuild` - クリーン + 復元 + ビルド
-- `all` - Debug と Release 両方をビルド
-- `clean` - ビルド成果物をクリーン
-- `restore` - NuGetパッケージ復元
-- `deploy` - ゲームディレクトリへの自動配置
-- `help` - ヘルプ表示
+### Build Targets
+- `build` (default) - Build with specified configuration
+- `rebuild` - Clean + restore + build
+- `all` - Build both Debug and Release
+- `clean` - Clean build artifacts
+- `restore` - Restore NuGet packages
+- `deploy` - Auto-deploy to game directory
+- `help` - Show help
 
-### 構成
-- `Release` (デフォルト) - リリース版
-- `Debug` - デバッグ版
+### Configurations
+- `Release` (default) - Release build
+- `Debug` - Debug build
 
-### 使用例
+### Usage Examples
 ```bash
-# 基本的なReleaseビルド
+# Basic Release build
 powershell.exe -ExecutionPolicy Bypass -File "build.ps1"
 
-# Debugビルド
+# Debug build
 powershell.exe -ExecutionPolicy Bypass -File "build.ps1" build Debug
 
-# フルリビルド
+# Full rebuild
 powershell.exe -ExecutionPolicy Bypass -File "build.ps1" rebuild
 
-# ゲームディレクトリへの自動配置
+# Auto-deploy to game directory
 powershell.exe -ExecutionPolicy Bypass -File "build.ps1" deploy
 powershell.exe -ExecutionPolicy Bypass -File "build.ps1" deploy Release kk
 powershell.exe -ExecutionPolicy Bypass -File "build.ps1" deploy Release kks
 ```
 
-### deployコマンドの詳細
-- レジストリからゲームインストールディレクトリを自動取得
-- `[ゲームディレクトリ]\BepInEx\plugins\`にDLLを配置
-- 既存ファイルは`.backup`として自動バックアップ
-- エラーハンドリング（ゲーム未発見、BepInEx未インストール等）
+### Deploy Command Details
+- Auto-detect game installation directory from registry
+- Deploy DLL to `[GameDirectory]\BepInEx\plugins\`
+- Automatically backup existing files as `.backup`
+- Error handling (game not found, BepInEx not installed, etc.)
 
-## プロジェクト構造
-- `src/KKStudioSocket.Core/` - 共通コード（sharedプロジェクト）
-- `src/KKStudioSocket.KK/` - KK専用プロジェクト（.NET Framework 3.5）
-- `src/KKStudioSocket.KKS/` - KKS専用プロジェクト（.NET Framework 4.6）
-- `bin/` - ビルド成果物出力先
+## Project Structure
+- `src/KKStudioSocket.Core/` - Shared code (shared project)
+- `src/KKStudioSocket.KK/` - KK-specific project (.NET Framework 3.5)
+- `src/KKStudioSocket.KKS/` - KKS-specific project (.NET Framework 4.6)
+- `bin/` - Build output directory
 
-## 成果物
-- `KK_KKStudioSocket.dll` - コイカツ（KK）用 (~11KB)
-- `KKS_KKStudioSocket.dll` - コイカツサンシャイン（KKS）用 (~12KB)
+## Build Artifacts
+- `KK_KKStudioSocket.dll` - For Koikatsu (KK) (~57KB)
+- `KKS_KKStudioSocket.dll` - For Koikatsu Sunshine (KKS) (~57KB)
 
-## 開発環境
+## Development Environment
 - Visual Studio 2019/2022
-- BepInEx依存パッケージ（カスタムNuGetフィードから自動取得）
+- BepInEx dependency packages (auto-retrieved from custom NuGet feed)
 
-## 依存ライブラリ
+## Dependencies
 
-### フレームワーク
-- **BepInEx** 5.4.22 - MODフレームワーク
+### Framework
+- **BepInEx** 5.4.22 - MOD framework
 - **IllusionModdingAPI**
-  - KKAPI 1.38.0 (KK用)
-  - KKSAPI 1.38.0 (KKS用)
-- **Harmony** 2.9.0 - ランタイムパッチング
+  - KKAPI 1.38.0 (for KK)
+  - KKSAPI 1.38.0 (for KKS)
+- **Harmony** 2.9.0 - Runtime patching
 
-### 外部ライブラリ
+### External Libraries
 - **WebSocketSharp** 1.0.3-rc11
-  - WebSocket通信の実装
-  - .NET Framework 3.5/4.6 両対応
-  - サーバー機能、クライアント接続管理
+  - WebSocket communication implementation
+  - .NET Framework 3.5/4.6 compatible
+  - Server functionality, client connection management
 - **Newtonsoft.Json** 13.0.3
-  - JSONシリアライゼーション/デシリアライゼーション
-  - コマンド処理、レスポンス生成
-  - .NET Framework 3.5/4.6 両対応
+  - JSON serialization/deserialization
+  - Command processing, response generation
+  - .NET Framework 3.5/4.6 compatible
 
-## 機能一覧
+## Features
 
-### WebSocketサーバー
-- ポート: 8765 (デフォルト、設定変更可)
-- エンドポイント: `/ws`
-- 接続 URL: `ws://127.0.0.1:8765/ws`
-- クライアント接続/切断ログ出力
-- エラーハンドリング
+### WebSocket Server
+- Port: 8765 (default, configurable)
+- Endpoint: `/ws`
+- Connection URL: `ws://127.0.0.1:8765/ws`
+- Client connection/disconnection logging
+- Error handling
 
-### コマンド処理
-- **Ping-Pong通信** - 通信疎通確認
-- **Transform操作** - スタジオアイテム制御
-- コマンドタイプ判別システム
-- メインスレッドでの安全な処理
+### Command Processing
+- **Ping-Pong Communication** - Connection verification
+- **Transform Operations** - Studio item control
+- Command type detection system
+- Safe processing on main thread
 
-## テスト方法
+## Testing
 
-### ビルドテスト
+### Build Testing
 ```bash
-# パッケージ復元とビルド
+# Package restore and build
 powershell.exe -ExecutionPolicy Bypass -File "build.ps1" restore
 powershell.exe -ExecutionPolicy Bypass -File "build.ps1" build Release
 ```
 
-### WebSocket接続テスト
-クライアントから以下のJSONを送信してテスト:
+## Troubleshooting
 
-```json
-// Pingテスト
-{"type": "ping", "message": "test", "timestamp": 1234567890}
+### Build Errors
+- **WebSocketSharp not found**: Restore NuGet packages with `restore` command
+- **Newtonsoft.Json error**: Version 13.0.3 required
+- **.NET Framework version error**: Check difference between KK(3.5) and KKS(4.6)
 
-// Transformテスト
-{"type": "transform", "id": 1, "pos": [0.0, 1.0, 0.0], "rot": [0.0, 90.0, 0.0]}
-```
-
-## トラブルシューティング
-
-### ビルドエラー
-- **WebSocketSharpが見つからない**: `restore` コマンドでNuGetパッケージを復元
-- **Newtonsoft.Jsonエラー**: バージョン 13.0.3 が必要
-- **.NET Frameworkバージョンエラー**: KK(3.5), KKS(4.6)の違いを確認
-
-### 実行時エラー
-- **ポートが使用中**: ポート番号を変更または他のアプリを終了
-- **JSON解析エラー**: コマンドフォーマットを確認
-- **BepInExログ**: `LogOutput.log` でエラー詳細を確認
-
-# 更新履歴
-
-## 2024-06-18
-- WebSocketSharp 1.0.3-rc11 を追加
-- Newtonsoft.Json 13.0.3 を追加
-- ping-pong通信機能を実装
-- コマンドタイプ判別システムを導入
-- Transform コマンド処理を改善
-- .NET Framework 3.5/4.6 互換性を確保
-- README.md、CLAUDE.md を更新
+### Runtime Errors
+- **Port in use**: Change port number or terminate other applications
+- **JSON parsing error**: Verify command format
+- **BepInEx logs**: Check `LogOutput.log` for error details
