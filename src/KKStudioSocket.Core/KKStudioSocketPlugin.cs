@@ -20,17 +20,19 @@ namespace KKStudioSocket
     [BepInPlugin(GUID, Name, Version)]
     public class KKStudioSocketPlugin : BaseUnityPlugin
     {
-        public const string GUID = "com.github.kk.kkstudiosocket";
+        public const string GUID = "KKStudioSocket";
         public const string Name = "KKStudioSocket";
         public const string Version = "1.0.0";
 
         private const int DefaultPort = 8765;
         private const string DefaultPath = "/ws";
+        private const string DefaultBindAddress = "127.0.0.1";
 
         internal static new ManualLogSource Logger;
         private static readonly Queue<Action> _actionQueue = new Queue<Action>();
 
         private ConfigEntry<int> _serverPort;
+        private ConfigEntry<string> _serverBindAddress;
         private ConfigEntry<bool> _enableServer;
         private WebSocketServer _webSocketServer;
         private Studio.Studio _studio = null;
@@ -50,6 +52,7 @@ namespace KKStudioSocket
                     this._studio = Studio.Studio.instance;
                     Logger.LogInfo("Studio instance seems to be initialized. Starting WebSocket Server.");
 
+                    _serverBindAddress = Config.Bind("Server", "BindAddress", DefaultBindAddress, "IP address for the WebSocket server to bind to");
                     _serverPort = Config.Bind("Server", "Port", DefaultPort, "WebSocket server port number");
                     _enableServer = Config.Bind("Server", "Enable", true, "Enable WebSocket server");
 
@@ -71,10 +74,10 @@ namespace KKStudioSocket
         {
             try
             {
-                _webSocketServer = new WebSocketServer(System.Net.IPAddress.Loopback, _serverPort.Value);
+                _webSocketServer = new WebSocketServer($"ws://{_serverBindAddress.Value}:{_serverPort.Value}");
                 _webSocketServer.AddWebSocketService<StudioWsBehavior>(DefaultPath);
                 _webSocketServer.Start();
-                Logger.LogInfo($"WebSocket server started → ws://127.0.0.1:{_serverPort.Value}{DefaultPath}");
+                Logger.LogInfo($"WebSocket server started → ws://{_serverBindAddress.Value}:{_serverPort.Value}{DefaultPath}");
             }
             catch (Exception e)
             {
