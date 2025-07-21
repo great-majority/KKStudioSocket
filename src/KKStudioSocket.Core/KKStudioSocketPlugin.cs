@@ -20,7 +20,7 @@ namespace KKStudioSocket
     [BepInPlugin(GUID, Name, Version)]
     public class KKStudioSocketPlugin : BaseUnityPlugin
     {
-        public const string GUID = "com.github.kk.kkstudiosocket";
+        public const string GUID = "KKStudioSocket";
         public const string Name = "KKStudioSocket";
         public const string Version = "1.0.0";
 
